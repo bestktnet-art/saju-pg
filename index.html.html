@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사주언니 스타일 - 재회운 정밀 분석 PG (테스트 연동)</title>
+<!-- 토스페이먼츠 v2 결제 SDK -->
+<script src="https://js.tosspayments.com/v2/standard"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background: #f3f1f5; margin: 0; padding: 20px; color: #222; }
+  .wrap { max-width: 540px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); overflow: hidden; }
+  .header { background: linear-gradient(135deg, #2b1e38, #4a2c5e); color: #fff; padding: 26px 24px; text-align: center; }
+  .header .badge { display: inline-block; background: rgba(255,255,255,0.18); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
+  .header h1 { margin: 0 0 8px; font-size: 21px; line-height: 1.4; }
+  .header p { margin: 0; font-size: 13px; color: #e0d6eb; }
+  .section { padding: 24px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #444; }
+  .field input, .field select { width: 100%; padding: 12px; border: 1px solid #d5d0dc; border-radius: 8px; font-size: 15px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-primary { width: 100%; padding: 15px; background: #5b2c83; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+  .btn-primary:hover { background: #471f69; }
+
+  /* 결과 영역 */
+  #resultSection { display: none; border-top: 8px solid #f3f1f5; }
+  .meta-line { font-size: 13px; color: #5b2c83; margin: 8px 0 16px; font-weight: bold; }
+
+  .preview-card { background: #faf8fc; border: 1px solid #e6dff0; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .preview-card h3 { margin: 0 0 10px; font-size: 16px; color: #3b1d54; }
+  .preview-card p { margin: 0 0 10px; font-size: 14px; line-height: 1.65; color: #333; }
+  .tag-top3 { display: inline-block; background: #ffe4e8; color: #c92a42; font-weight: bold; font-size: 12px; padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; }
+
+  /* 잠금(블러) 영역 */
+  .locked-wrapper { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #e6dff0; }
+  .locked-content { padding: 18px; background: #fff; filter: blur(5px); user-select: none; pointer-events: none; transition: filter 0.3s ease; }
+  .locked-content.unlocked { filter: none; user-select: auto; pointer-events: auto; }
+  .locked-content h4 { margin: 14px 0 6px; font-size: 15px; color: #2b1e38; }
+  .locked-content p { margin: 0 0 10px; font-size: 14px; line-height: 1.7; color: #333; }
+
+  .paywall-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0.96) 45%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+  }
+  .paywall-overlay p { font-size: 15px; font-weight: bold; color: #222; margin: 0 0 6px; }
+  .paywall-overlay span { font-size: 13px; color: #666; margin-bottom: 16px; }
+  .btn-pay { background: #e63956; color: #fff; border: none; padding: 14px 24px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(230,57,86,0.3); }
+  .btn-pay:hover { background: #cc2944; }
+
+  /* 내려받기 영역 */
+  .download-area { display: none; margin-top: 18px; gap: 10px; }
+  .btn-download { flex: 1; padding: 13px; background: #2b1e38; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+  .btn-print { flex: 1; padding: 13px; background: #ece7f2; color: #2b1e38; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
+
+  /* 결제 모달 */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); align-items: center; justify-content: center; padding: 16px; z-index: 999; }
+  .modal { background: #fff; width: 100%; max-width: 400px; border-radius: 14px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  .modal h3 { margin: 0 0 12px; font-size: 18px; }
+  .order-summary { background: #f8f7fa; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
+  .pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .pay-method { border: 1px solid #ccc; border-radius: 8px; padding: 10px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; }
+  .pay-method.active { border-color: #5b2c83; background: #f4eef9; color: #5b2c83; }
+  .modal-actions { display: flex; gap: 8px; }
+  .btn-cancel { flex: 1; padding: 12px; background: #eee; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+  .btn-confirm-pay { flex: 2; padding: 12px; background: #e63956; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="badge">쇼츠 특별편 · 11월~12월 재회운 정밀 진단</div>
+    <h1>헤어진 그 사람, 11~12월에 다시 연락 올까?</h1>
+    <p>생년월일과 태어난 시(모름 가능)를 입력하면 내 사주 속 재회 기운을 바로 확인합니다.</p>
+  </div>
+
+  <!-- 생년월일 및 태어난 시 입력 -->
+  <div class="section">
+    <div class="row-2">
+      <div class="field">
+        <label>이름 (또는 닉네임)</label>
+        <input type="text" id="userName" placeholder="예: 김지민" value="김지민">
+      </div>
+      <div class="field">
+        <label>성별</label>
+        <select id="gender">
+          <option value="F">여성</option>
+          <option value="M">남성</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label>양력 생년월일</label>
+        <input type="date" id="birthDate" value="1993-10-14">
+      </div>
+      <div class="field">
+        <label>태어난 시간</label>
+        <select id="birthHour">
+          <option value="unknown" selected>모름 (시간 미상)</option>
+          <option value="0">자시 (23:30~01:29)</option>
+          <option value="1">축시 (01:30~03:29)</option>
+          <option value="2">인시 (03:30~05:29)</option>
+          <option value="3">묘시 (05:30~07:29)</option>
+          <option value="4">진시 (07:30~09:29)</option>
+          <option value="5">사시 (09:30~11:29)</option>
+          <option value="6">오시 (11:30~13:29)</option>
+          <option value="7">미시 (13:30~15:29)</option>
+          <option value="8">신시 (15:30~17:29)</option>
+          <option value="9">유시 (17:30~19:29)</option>
+          <option value="10">술시 (19:30~21:29)</option>
+          <option value="11">해시 (21:30~23:29)</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" id="previewBtn">무료 맛보기 재회운 확인하기</button>
+  </div>
+
+  <!-- 결과 및 맛보기 + 잠금 -->
+  <div class="section" id="resultSection">
+    <div id="top3BadgeArea"></div>
+    <strong id="userSummaryTitle" style="font-size:17px;"></strong>
+    <div class="meta-line" id="sajuMetaText"></div>
+
+    <!-- 무료 맛보기 영역 -->
+    <div class="preview-card">
+      <h3>[무료 맛보기] 11월~12월 재회운 핵심 흐름</h3>
+      <p id="previewText"></p>
+    </div>
+
+    <!-- 하단 가림 + 결제 유도 -->
+    <div class="locked-wrapper">
+      <div class="locked-content" id="lockedContent">
+        <h4>1. 상대방의 현재 속마음과 미련 지수</h4>
+        <p id="detailMind"></p>
+        <h4>2. 연락이 오거나 재회 물꼬가 트이는 결정적 시기</h4>
+        <p id="detailTiming"></p>
+        <h4>3. 먼저 연락할까, 기다릴까? 실전 행동 지침</h4>
+        <p id="detailAction"></p>
+      </div>
+
+      <div class="paywall-overlay" id="paywallOverlay">
+        <p>결제를 하시면 상세한 풀이를 드립니다</p>
+        <span>상대방 속마음 · 연락 오는 시기 · 재회 행동 지침 전체 열람</span>
+        <button type="button" class="btn-pay" id="openPayModalBtn">19,900원 결제하고 상세 풀이 보기</button>
+      </div>
+    </div>
+
+    <!-- 결제 완료 후 내려받기 버튼 -->
+    <div class="download-area" id="downloadArea">
+      <button type="button" class="btn-download" id="downloadBtn">상세 풀이 내려받기 (.txt)</button>
+      <button type="button" class="btn-print" id="printBtn">인쇄 / PDF 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- 결제창 모달 -->
+<div class="modal-backdrop" id="payModal">
+  <div class="modal">
+    <h3>안전 결제 (토스페이먼츠 테스트 연동)</h3>
+    <div class="order-summary">
+      <div><strong>상품명:</strong> 11~12월 재회운 정밀 사주 풀이</div>
+      <div><strong>결제금액:</strong> 19,900원 (VAT 포함)</div>
+      <div id="modalBuyerInfo"></div>
+    </div>
+    <div class="pay-methods">
+      <div class="pay-method active" data-method="CARD">신용/체크카드</div>
+      <div class="pay-method" data-method="CARD">간편결제(페이)</div>
+      <div class="pay-method" data-method="TRANSFER">계좌이체</div>
+      <div class="pay-method" data-method="MOBILE_PHONE">휴대폰결제</div>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="closePayModalBtn">취소</button>
+      <button type="button" class="btn-confirm-pay" id="confirmPayBtn">결제하기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const CHEONGAN = ["갑(甲)", "을(乙)", "병(丙)", "정(丁)", "무(戊)", "기(己)", "경(庚)", "신(辛)", "임(壬)", "계(癸)"];
+  const JIJI = ["자(子)", "축(丑)", "인(寅)", "묘(卯)", "진(辰)", "사(巳)", "오(午)", "미(未)", "신(申)", "유(酉)", "술(戌)", "해(亥)"];
+  const DDI_NAME = ["쥐띠", "소띠", "호랑이띠", "토끼띠", "용띠", "뱀띠", "말띠", "양띠", "원숭이띠", "닭띠", "개띠", "돼지띠"];
+  const TOP3_DDI = ["닭띠", "개띠", "호랑이띠"];
+
+  // 토스페이먼츠 API 개별 연동 테스트 클라이언트 키
+  const TOSS_CLIENT_KEY = "test_ck_c19ALaObYIwu1NUiqazZx7gKQyxLT2v3Vk";
+  const PAYMENT_AMOUNT = 19900;
+
+  let currentReportData = {};
+  let selectedPayMethod = "CARD";
+
+  function runPreview() {
+    const name = (document.getElementById("userName").value || "").trim() || "의뢰인";
+    const dateStr = document.getElementById("birthDate").value;
+    const hourVal = document.getElementById("birthHour").value;
+    const isHourUnknown = (hourVal === "unknown");
+    if (!dateStr) {
+      alert("생년월일을 입력해 주세요.");
+      return;
+    }
+
+    const parts = dateStr.split("-").map(Number);
+    const y = parts[0];
+    const m = parts[1];
+    const d = parts[2];
+
+    let sajuYear = y;
+    if (m === 1 || (m === 2 && d < 4)) sajuYear -= 1;
+    const yGan = ((sajuYear - 4) % 10 + 10) % 10;
+    const yJi = ((sajuYear - 4) % 12 + 12) % 12;
+
+    const monthSolarStart = [6, 4, 6, 5, 6, 6, 7, 8, 8, 8, 7, 7];
+    let solarMonth = m;
+    if (d < monthSolarStart[m - 1]) solarMonth -= 1;
+    if (solarMonth <= 0) solarMonth += 12;
+    const mJi = (solarMonth + 1) % 12;
+    const mGanStart = ((yGan % 5) * 2 + 2) % 10;
+    const mOffset = (solarMonth >= 2) ? (solarMonth - 2) : (solarMonth + 10);
+    const mGan = (mGanStart + mOffset) % 10;
+
+    const diffDays = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 1)) / 86400000);
+    const dayCycle = ((10 + diffDays) % 60 + 60) % 60;
+    const dGan = dayCycle % 10;
+    const dJi = dayCycle % 12;
+
+    const ddi = DDI_NAME[yJi];
+    const isTop3 = TOP3_DDI.includes(ddi);
+    const dayGanJi = CHEONGAN[dGan] + JIJI[dJi];
+    const hourText = isHourUnknown ? "태어난 시: 모름(삼주 기준 풀이)" : "태어난 시: " + JIJI[parseInt(hourVal, 10)] + " 기준";
+
+    document.getElementById("top3BadgeArea").innerHTML = isTop3
+      ? '<div class="tag-top3">쇼츠 선정 11~12월 재회운 TOP 3 해당 (' + ddi + ')</div>'
+      : '<div class="tag-top3" style="background:#eef2ff;color:#3b5bdb;">' + ddi + ' · 일주 기운 정밀 매칭 결과</div>';
+
+    document.getElementById("userSummaryTitle").innerText = name + "님 (" + ddi + " · " + dayGanJi + " 일주) 재회운 진단";
+    document.getElementById("sajuMetaText").innerText = hourText + " · 연 " + CHEONGAN[yGan] + JIJI[yJi] + " / 월 " + CHEONGAN[mGan] + JIJI[mJi] + " / 일 " + dayGanJi;
+
+    const previewText = isTop3
+      ? name + "님은 이번 11월~12월 재회운 상승 TOP 3에 해당하는 '" + ddi + "' 기운을 지니고 있습니다. 특히 일주(" + dayGanJi + ")의 흐름상 끊어졌던 인연의 기운이 다시 맞닿는 시기가 포착되며, 상대방 쪽에서도 과거를 되돌아보는 신호가 강하게 들어와 있습니다."
+      : name + "님은 " + ddi + "이며, 일주(" + dayGanJi + ")를 기준으로 볼 때 11월 후반에서 12월 사이 감정선이 다시 흔들리는 접점이 형성됩니다. 겉으로는 무심해 보여도 정리되지 않은 감정의 잔상이 남아 있어 타이밍이 중요합니다.";
+
+    const detailMind = name + "님의 일주(" + dayGanJi + ")와 상대의 인연 흐름을 대입해 보면, 상대방은 이별 직후 자존심이나 현실적인 문제로 거리를 두었으나 시간이 지나며 " + name + "님과의 편안했던 기억을 자주 떠올리는 상태입니다. 먼저 다가오고 싶어도 거절당할까 봐 망설이는 기운이 큽니다.";
+    const detailTiming = "가장 강한 연락·재회 신호는 11월 넷째 주에서 12월 둘째 주 사이에 집중됩니다. 특히 저녁 시간대(19시~23시)나 안부·일상적인 계기를 빌린 가벼운 연락 형태로 물꼬가 트일 가능성이 높습니다.";
+    const detailAction = "1) 장문의 감정 호소는 피하고 담백한 근황·안부 톤을 유지하세요. 2) 프로필이나 상태를 지나치게 어둡게 두기보다 차분하고 안정된 일상을 보여주는 것이 상대의 연락을 끌어내는 데 유리합니다. 3) 첫 연락이 왔을 때 과거 서운함을 바로 꺼내지 말고 가벼운 대화로 2~3회 호흡을 맞추는 것이 재회 성사율을 높입니다.";
+
+    document.getElementById("previewText").innerText = previewText;
+    document.getElementById("detailMind").innerText = detailMind;
+    document.getElementById("detailTiming").innerText = detailTiming;
+    document.getElementById("detailAction").innerText = detailAction;
+
+    currentReportData = {
+      name: name,
+      dateStr: dateStr,
+      ddi: ddi,
+      hourText: hourText,
+      saju: "연 " + CHEONGAN[yGan] + JIJI[yJi] + " · 월 " + CHEONGAN[mGan] + JIJI[mJi] + " · 일 " + dayGanJi + " (" + hourText + ")",
+      previewText: previewText,
+      detailMind: detailMind,
+      detailTiming: detailTiming,
+      detailAction: detailAction
+    };
+
+    try {
+      sessionStorage.setItem("saju_report_data", JSON.stringify(currentReportData));
+    } catch (e) {}
+
+    document.getElementById("lockedContent").classList.remove("unlocked");
+    document.getElementById("paywallOverlay").style.display = "flex";
+    document.getElementById("downloadArea").style.display = "none";
+    document.getElementById("resultSection").style.display = "block";
+    document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function openPayModal() {
+    if (!currentReportData.name) {
+      alert("먼저 무료 맛보기 재회운을 조회해 주세요.");
+      return;
+    }
+    document.getElementById("modalBuyerInfo").innerText = "신청자: " + currentReportData.name + " (" + currentReportData.dateStr + " · " + currentReportData.hourText + ")";
+    document.getElementById("payModal").style.display = "flex";
+  }
+
+  function closePayModal() {
+    document.getElementById("payModal").style.display = "none";
+  }
+
+  function selectMethod(el) {
+    document.querySelectorAll(".pay-method").forEach(function (m) {
+      m.classList.remove("active");
+    });
+    el.classList.add("active");
+    selectedPayMethod = el.getAttribute("data-method") || "CARD";
+  }
+
+  function buildSafeCustomerKey(rawName) {
+    try {
+      const encoded = btoa(unescape(encodeURIComponent(rawName || "guest"))).replace(/[^a-zA-Z0-9_-]/g, "");
+      return ("CUST_" + encoded).slice(0, 24) || "CUST_GUEST_01";
+    } catch (e) {
+      return "CUST_GUEST_01";
+    }
+  }
+
+  async function requestTossPayment() {
+    if (typeof TossPayments === "undefined") {
+      alert("결제 모듈을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.");
+      return;
+    }
+
+    const orderId = "SAJU_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+    const customerKey = buildSafeCustomerKey(currentReportData.name);
+    const origin = (window.location.origin && window.location.origin !== "null")
+      ? window.location.origin
+      : "http://localhost:3000";
+
+    try {
+      sessionStorage.setItem("saju_pending_order", JSON.stringify({
+        orderId: orderId,
+        amount: PAYMENT_AMOUNT,
+        buyerName: currentReportData.name
+      }));
+    } catch (e) {}
+
+    try {
+      const tossPayments = TossPayments(TOSS_CLIENT_KEY);
+      const payment = tossPayments.payment({ customerKey: customerKey });
+
+      await payment.requestPayment({
+        method: selectedPayMethod,
+        amount: {
+          currency: "KRW",
+          value: PAYMENT_AMOUNT
+        },
+        orderId: orderId,
+        orderName: "11~12월 재회운 정밀 사주 풀이",
+        successUrl: origin + "/success.html",
+        failUrl: origin + "/fail.html",
+        customerName: currentReportData.name || "의뢰인"
+      });
+    } catch (error) {
+      if (error && (error.code === "USER_CANCEL" || error.code === "PAY_PROCESS_CANCELED")) {
+        alert("결제를 취소하셨습니다.");
+      } else {
+        const msg = (error && error.message) ? error.message : "처리 중 오류가 발생했습니다";
+        alert("결제 창 호출 중 오류가 발생했습니다: " + msg);
+      }
+    }
+  }
+
+  function unlockReportUI() {
+    document.getElementById("lockedContent").classList.add("unlocked");
+    document.getElementById("paywallOverlay").style.display = "none";
+    document.getElementById("downloadArea").style.display = "flex";
+  }
+
+  function downloadReport() {
+    const text = [
+      "[11월~12월 재회운 정밀 사주 풀이 리포트]",
+      "성함: " + currentReportData.name + " (" + currentReportData.ddi + ")",
+      "생년월일: " + currentReportData.dateStr,
+      "명식정보: " + currentReportData.saju,
+      "----------------------------------------",
+      "[핵심 흐름 요약]",
+      currentReportData.previewText,
+      "",
+      "1. 상대방의 현재 속마음과 미련 지수",
+      currentReportData.detailMind,
+      "",
+      "2. 연락이 오거나 재회 물꼬가 트이는 결정적 시기",
+      currentReportData.detailTiming,
+      "",
+      "3. 실전 행동 지침",
+      currentReportData.detailAction
+    ].join("\n");
+
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (currentReportData.name || "의뢰인") + "_재회운_상세풀이.txt";
+    a.click();
+  }
+
+  window.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("previewBtn").addEventListener("click", runPreview);
+    document.getElementById("openPayModalBtn").addEventListener("click", openPayModal);
+    document.getElementById("closePayModalBtn").addEventListener("click", closePayModal);
+    document.getElementById("confirmPayBtn").addEventListener("click", requestTossPayment);
+    document.getElementById("downloadBtn").addEventListener("click", downloadReport);
+    document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+
+    document.querySelectorAll(".pay-method").forEach(function (el) {
+      el.addEventListener("click", function () {
+        selectMethod(el);
+      });
+    });
+
+    try {
+      const verifiedPaymentRaw = sessionStorage.getItem("saju_verified_payment");
+      const savedReportRaw = sessionStorage.getItem("saju_report_data");
+
+      if (verifiedPaymentRaw && savedReportRaw) {
+        const verifiedPayment = JSON.parse(verifiedPaymentRaw);
+        const savedReport = JSON.parse(savedReportRaw);
+        if (verifiedPayment.ok && Number(verifiedPayment.amount) === PAYMENT_AMOUNT) {
+          currentReportData = savedReport;
+          document.getElementById("userName").value = savedReport.name || "";
+          document.getElementById("birthDate").value = savedReport.dateStr || "";
+          document.getElementById("userSummaryTitle").innerText = savedReport.name + "님 (" + savedReport.ddi + ") 재회운 진단";
+          document.getElementById("sajuMetaText").innerText = savedReport.saju;
+          document.getElementById("previewText").innerText = savedReport.previewText;
+          document.getElementById("detailMind").innerText = savedReport.detailMind;
+          document.getElementById("detailTiming").innerText = savedReport.detailTiming;
+          document.getElementById("detailAction").innerText = savedReport.detailAction;
+          document.getElementById("resultSection").style.display = "block";
+          unlockReportUI();
+        }
+      }
+    } catch (e) {
+      console.error("결제 상태 복원 중 오류:", e);
+    }
+  });
+})();
+</script>
+</body>
+</html>
