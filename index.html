@@ -485,13 +485,42 @@
     document.getElementById("downloadArea").style.display = "flex";
   }
 
+  function wrapReportLines(text, maxChars) {
+    const limit = maxChars || 38;
+    return String(text || "")
+      .split("\n")
+      .map(function (paragraph) {
+        const trimmed = paragraph.trim();
+        if (!trimmed) return "";
+        if (trimmed.indexOf("===") === 0 || trimmed.indexOf("---") === 0) {
+          return paragraph;
+        }
+        const words = trimmed.split(/\s+/);
+        const lines = [];
+        let current = "";
+        for (let i = 0; i < words.length; i++) {
+          const w = words[i];
+          const next = current ? (current + " " + w) : w;
+          if (next.length > limit && current) {
+            lines.push("  " + current);
+            current = w;
+          } else {
+            current = next;
+          }
+        }
+        if (current) lines.push("  " + current);
+        return lines.join("\n");
+      })
+      .join("\n");
+  }
+
   function downloadReport() {
     if (!currentReportData) return;
 
-    const line = "============================================================";
-    const subLine = "------------------------------------------------------------";
+    const line = "==================================================";
+    const subLine = "--------------------------------------------------";
 
-    const text = [
+    const rawText = [
       line,
       "  [11월~12월 재회운 정밀 사주 풀이 리포트]",
       "  바이트빈 · 감성 심층 리포트",
@@ -508,28 +537,28 @@
       subLine,
       "  ▶ " + currentReportData.previewSummary,
       "",
-      "  " + currentReportData.previewText,
+      currentReportData.previewText,
       "",
       subLine,
       "■ 1. 상대방의 현재 속마음과 미련 지수",
       subLine,
       "  ▶ " + currentReportData.summaryMind,
       "",
-      "  " + currentReportData.detailMind,
+      currentReportData.detailMind,
       "",
       subLine,
       "■ 2. 연락이 오거나 재회 물꼬가 트이는 결정적 시기",
       subLine,
       "  ▶ " + currentReportData.summaryTiming,
       "",
-      "  " + currentReportData.detailTiming,
+      currentReportData.detailTiming,
       "",
       subLine,
       "■ 3. 먼저 연락할까, 기다릴까? 실전 행동 지침",
       subLine,
       "  ▶ " + currentReportData.summaryAction,
       "",
-      "  " + currentReportData.detailAction,
+      currentReportData.detailAction,
       "",
       line,
       "  ※ 본 리포트는 전통 명리·데이터 기반 참고 및 마음 돌봄 콘텐츠입니다.",
@@ -537,6 +566,7 @@
       line
     ].join("\n");
 
+    const text = wrapReportLines(rawText, 38);
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
