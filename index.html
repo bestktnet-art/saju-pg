@@ -125,7 +125,7 @@
       </div>
       <div class="field">
         <label for="birthDate">생년월일</label>
-        <input type="date" id="birthDate" value="1994-01-24">
+        <input type="date" id="birthDate" value="1994-01-01">
       </div>
       <div class="field">
         <label for="birthHour">태어난 시간</label>
@@ -146,9 +146,9 @@
         </select>
       </div>
     </div>
-    <div class="helper-note">※ 설날·입춘 전 출생자는 명리 연도 기준 전년도 띠가 적용되며, 음력 선택 시 근사 양력으로 환산해 계산합니다.</div>
+    <div class="helper-note">※ 1~2월 초순(입춘·설날 전) 출생자는 명리 연도 기준으로 전년도 띠가 적용되며, 1994년 입춘 이후 출생자부터 개띠로 반영됩니다.</div>
 
-    <button type="button" class="btn-primary" id="previewBtn">무료 맛보기 재회운 확인하기</button>
+    <button type="button" class="btn-primary" id="previewBtn">재회운 미리보기</button>
   </div>
 
   <!-- 결과 및 맛보기 + 잠금 -->
@@ -336,6 +336,13 @@
   let selectedPayMethod = "CARD";
   let selectedPayLabel = "신용/체크카드";
   let isPaying = false;
+  let isReportUnlocked = false;
+
+  function setActionButtonLabel(unlocked) {
+    const btn = document.getElementById("previewBtn");
+    if (!btn) return;
+    btn.innerText = unlocked ? "재회운 확인하기" : "재회운 미리보기";
+  }
 
   function approximateSolarFromLunar(lunarYear, lunarMonth, lunarDay) {
     const baseUtc = Date.UTC(lunarYear, 0, 1);
@@ -552,9 +559,15 @@
       sessionStorage.setItem("saju_report_data", JSON.stringify(currentReportData));
     } catch (e) {}
 
-    document.getElementById("lockedContent").classList.remove("unlocked");
-    document.getElementById("paywallOverlay").style.display = "flex";
-    document.getElementById("downloadArea").style.display = "none";
+    if (isReportUnlocked) {
+      unlockReportUI();
+    } else {
+      document.getElementById("lockedContent").classList.remove("unlocked");
+      document.getElementById("paywallOverlay").style.display = "flex";
+      document.getElementById("downloadArea").style.display = "none";
+      setActionButtonLabel(false);
+    }
+
     document.getElementById("resultSection").style.display = "block";
     document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
   }
@@ -597,7 +610,7 @@
 
   function openPayModal() {
     if (!currentReportData || !currentReportData.name) {
-      alert("먼저 무료 맛보기 재회운을 조회해 주세요.");
+      alert("먼저 재회운 미리보기를 조회해 주세요.");
       return;
     }
     const genderLabel = currentReportData.gender || (currentReportData.genderCode === "M" ? "남성" : "여성");
@@ -632,7 +645,7 @@
   async function requestTossPayment() {
     if (isPaying) return;
     if (!currentReportData || !currentReportData.name) {
-      alert("먼저 무료 맛보기 재회운을 조회해 주세요.");
+      alert("먼저 재회운 미리보기를 조회해 주세요.");
       return;
     }
     if (!document.getElementById("payConsentCheck").checked) {
@@ -698,9 +711,11 @@
   }
 
   function unlockReportUI() {
+    isReportUnlocked = true;
     document.getElementById("lockedContent").classList.add("unlocked");
     document.getElementById("paywallOverlay").style.display = "none";
     document.getElementById("downloadArea").style.display = "flex";
+    setActionButtonLabel(true);
   }
 
   function wrapReportLines(text, maxChars) {
@@ -822,6 +837,7 @@
   }
 
   window.addEventListener("DOMContentLoaded", function () {
+    setActionButtonLabel(false);
     document.getElementById("previewBtn").addEventListener("click", runPreview);
     document.getElementById("openPayModalBtn").addEventListener("click", openPayModal);
     document.getElementById("closePayModalBtn").addEventListener("click", closePayModal);
