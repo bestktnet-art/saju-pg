@@ -280,4 +280,375 @@
     let sajuYear = y;
     if (m === 1 || (m === 2 && d < 4)) sajuYear -= 1;
     const yGan = ((sajuYear - 4) % 10 + 10) % 10;
-    const yJi = ((s
+    const yJi = ((sajuYear - 4) % 12 + 12) % 12;
+
+    const monthSolarStart = [6, 4, 6, 5, 6, 6, 7, 8, 8, 8, 7, 7];
+    let solarMonth = m;
+    if (d < monthSolarStart[m - 1]) solarMonth -= 1;
+    if (solarMonth <= 0) solarMonth += 12;
+    const mJi = (solarMonth + 1) % 12;
+    const mGanStart = ((yGan % 5) * 2 + 2) % 10;
+    const mOffset = (solarMonth >= 2) ? (solarMonth - 2) : (solarMonth + 10);
+    const mGan = (mGanStart + mOffset) % 10;
+
+    const diffDays = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 1)) / 86400000);
+    const dayCycle = ((10 + diffDays) % 60 + 60) % 60;
+    const dGan = dayCycle % 10;
+    const dJi = dayCycle % 12;
+
+    const ddi = DDI_NAME[yJi];
+    const isTop3 = TOP3_DDI.includes(ddi);
+    const dayGanJi = CHEONGAN[dGan] + JIJI[dJi];
+    const hourText = isHourUnknown ? "生時：不明（三柱基準）" : "生時：" + JIJI[parseInt(hourVal, 10)] + " 基準";
+    const sajuText = "年 " + CHEONGAN[yGan] + JIJI[yJi] + " ・ 月 " + CHEONGAN[mGan] + JIJI[mJi] + " ・ 日 " + dayGanJi + "（" + hourText + "）";
+
+    const previewSummary = isTop3
+      ? "一言まとめ：11〜12月の復縁運が上向く" + ddi + "の流れ。止まっていた温もりが再び通い合う兆しが見えています。"
+      : "一言まとめ：晩秋から初冬にかけて、言葉にできなかった想いがそっと揺れ動く静かな転機が訪れます。";
+
+    const previewText = isTop3
+      ? name + "さん、心の奥にそっとしまっていたお相手とのご縁が、" + ddi + "の11〜12月の流れの中でふたたび息を吹き返そうとしています。とくに" + dayGanJi + "の日柱が持つ柔らかな巡りによって、少し離れていた距離が少しずつ近づく気配があり、お相手の心にも一緒に過ごした温かい記憶がふとよみがえる時期です。"
+      : name + "さん、表向きは穏やかに毎日を過ごされていても、胸の奥にはまだ消えない余韻が残っているのではないでしょうか。" + ddi + "・" + dayGanJi + "の日柱の流れを見ると、11月後半から12月にかけてお二人の心の波が再び重なり合うような、静かで大切な節目が巡ってきています。";
+
+    const summaryMind = "一言まとめ：プライドや照れくささの奥に未練が残っており、様子をうかがっている状態です。";
+    const detailMind = name + "さんと過ごした時間が決して軽いものではなかったと、お相手も時間が経つにつれてより深く実感しています。離れた直後は意地や状況の難しさから背を向けようとしましたが、一人の時間が増えるほど、" + name + "さんのそばで感じた安心感や優しさを思い出す瞬間が増えています。ただ、自分から踏み出して断られたらどうしようという迷いもあり、心だけが先に動いて足踏みしている状態です。";
+
+    const summaryTiming = "一言まとめ：11月第4週〜12月第2週、夜の落ち着いた時間帯の何気ない一言がきっかけになりやすいです。";
+    const detailTiming = "とくに注目したいのは11月第4週から12月第2週にかけての期間です。一日の慌ただしさが落ち着く夜19時〜23時ごろ、重い話し合いや大きな告白よりも、季節の変わり目や日常のちょっとした出来事をきっかけにした短いメッセージの形で気持ちが届きやすくなります。焦る気持ちが強くなるほど一日が長く感じられますので、深呼吸をするようにゆったり構えてみてください。";
+
+    const summaryAction = "一言まとめ：急かしたり責めたりせず、穏やかな日常とやわらかな言葉で安心感を届けてください。";
+    const detailAction = "1）今は強い感情を一気にぶつけるよりも、ふっと受け取りやすい短くやさしい近況や気遣いのトーンを心がけてみてください。" +
+      "2）SNSやメッセージの雰囲気を無理に暗くするよりも、自分自身を大切にしながら落ち着いて過ごしている姿を見せることで、お相手も一歩踏み出しやすくなります。" +
+      "3）連絡がつながったときは過去のわだかまりをすぐに掘り起こすより、まずは今の温度感を合わせながら少しずつ会話を重ねていくことが、再び心を通わせる近道になります。";
+
+    currentReportData = {
+      name: name,
+      gender: gender,
+      dateStr: dateStr,
+      hourVal: hourVal,
+      ddi: ddi,
+      isTop3: isTop3,
+      dayGanJi: dayGanJi,
+      hourText: hourText,
+      saju: sajuText,
+      previewSummary: previewSummary,
+      previewText: previewText,
+      summaryMind: summaryMind,
+      detailMind: detailMind,
+      summaryTiming: summaryTiming,
+      detailTiming: detailTiming,
+      summaryAction: summaryAction,
+      detailAction: detailAction
+    };
+
+    renderReportToDOM(currentReportData);
+
+    try {
+      sessionStorage.setItem("saju_ja_report_data", JSON.stringify(currentReportData));
+    } catch (e) {}
+
+    document.getElementById("lockedContent").classList.remove("unlocked");
+    document.getElementById("paywallOverlay").style.display = "flex";
+    document.getElementById("downloadArea").style.display = "none";
+    document.getElementById("resultSection").style.display = "block";
+    document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function renderReportToDOM(data) {
+    document.getElementById("top3BadgeArea").innerHTML = data.isTop3
+      ? '<div class="tag-top3">特集ピックアップ 11〜12月 復縁運TOP3該当（' + escapeHtml(data.ddi) + '）</div>'
+      : '<div class="tag-top3" style="background:#eef2ff;color:#3b5bdb;">' + escapeHtml(data.ddi) + ' ・ 日柱気運マッチ鑑定</div>';
+
+    document.getElementById("userSummaryTitle").innerText = data.name + "さん（" + data.ddi + "・" + data.dayGanJi + " 日柱）復縁運鑑定";
+    document.getElementById("sajuMetaText").innerText = data.saju;
+    document.getElementById("previewSummary").innerText = data.previewSummary;
+    document.getElementById("previewText").innerText = data.previewText;
+
+    document.getElementById("summaryMind").innerText = data.summaryMind;
+    document.getElementById("detailMind").innerText = data.detailMind;
+    document.getElementById("summaryTiming").innerText = data.summaryTiming;
+    document.getElementById("detailTiming").innerText = data.detailTiming;
+    document.getElementById("summaryAction").innerText = data.summaryAction;
+    document.getElementById("detailAction").innerText = data.detailAction;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function openPayModal() {
+    if (!currentReportData || !currentReportData.name) {
+      alert("先に無料お試しで復縁運をご確認ください。");
+      return;
+    }
+    document.getElementById("modalBuyerInfo").innerText =
+      "お申し込み：" + currentReportData.name + "さん（" + currentReportData.dateStr + "・" + currentReportData.hourText + "）";
+    document.getElementById("payModal").style.display = "flex";
+  }
+
+  function closePayModal() {
+    document.getElementById("payModal").style.display = "none";
+  }
+
+  function selectMethod(el) {
+    document.querySelectorAll(".pay-method").forEach(function (m) {
+      m.classList.remove("active");
+    });
+    el.classList.add("active");
+    selectedPayMethod = el.getAttribute("data-method") || "CARD";
+    selectedPayLabel = el.getAttribute("data-label") || "カード決済";
+  }
+
+  function buildSafeCustomerKey(rawName) {
+    try {
+      const encoded = btoa(unescape(encodeURIComponent(rawName || "guest"))).replace(/[^a-zA-Z0-9_-]/g, "");
+      return ("CUST_JA_" + encoded).slice(0, 24) || "CUST_JA_GUEST_01";
+    } catch (e) {
+      return "CUST_JA_GUEST_01";
+    }
+  }
+
+  async function requestTossPayment() {
+    if (isPaying) return;
+    if (!currentReportData || !currentReportData.name) {
+      alert("先に無料お試しで復縁運をご確認ください。");
+      return;
+    }
+    if (!document.getElementById("payConsentCheck").checked) {
+      alert("ご利用条件・返金案内・規約への同意にチェックを入れてください。");
+      return;
+    }
+    if (typeof TossPayments === "undefined") {
+      alert("決済モジュールを読み込めませんでした。通信環境をご確認ください。");
+      return;
+    }
+
+    isPaying = true;
+    const confirmBtn = document.getElementById("confirmPayBtn");
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = "決済画面を開いています...";
+
+    const orderId = "SAJU_JA_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+    const customerKey = buildSafeCustomerKey(currentReportData.name);
+    const baseDir = window.location.pathname.replace(/[^/]*$/, "");
+    const baseOriginUrl = (window.location.origin && window.location.origin !== "null")
+      ? (window.location.origin + baseDir)
+      : "https://bestktnet-art.github.io/saju-pg/ja/";
+
+    try {
+      sessionStorage.setItem("saju_ja_report_data", JSON.stringify(currentReportData));
+      sessionStorage.setItem("saju_ja_pending_order", JSON.stringify({
+        orderId: orderId,
+        amount: PAYMENT_AMOUNT,
+        currency: PAYMENT_CURRENCY,
+        methodLabel: selectedPayLabel,
+        buyerName: currentReportData.name,
+        createdAt: Date.now()
+      }));
+    } catch (e) {}
+
+    try {
+      const tossPayments = TossPayments(TOSS_CLIENT_KEY);
+      const payment = tossPayments.payment({ customerKey: customerKey });
+
+      await payment.requestPayment({
+        method: selectedPayMethod,
+        amount: {
+          currency: PAYMENT_CURRENCY,
+          value: PAYMENT_AMOUNT
+        },
+        orderId: orderId,
+        orderName: "11〜12月 復縁運・四柱推命 詳細鑑定レポート（2,000円・税込）",
+        successUrl: baseOriginUrl + "success.html",
+        failUrl: baseOriginUrl + "fail.html",
+        customerName: currentReportData.name || "お客様"
+      });
+    } catch (error) {
+      isPaying = false;
+      confirmBtn.disabled = false;
+      confirmBtn.innerText = "2,000円で決済する";
+
+      if (error && (error.code === "USER_CANCEL" || error.code === "PAY_PROCESS_CANCELED")) {
+        alert("決済がキャンセルされました。またいつでもお試しいただけます。");
+      } else {
+        const msg = (error && error.message) ? error.message : "処理中にエラーが発生しました。";
+        alert("決済処理中に問題が発生しました：" + msg);
+      }
+    }
+  }
+
+  function unlockReportUI() {
+    document.getElementById("lockedContent").classList.add("unlocked");
+    document.getElementById("paywallOverlay").style.display = "none";
+    document.getElementById("downloadArea").style.display = "flex";
+  }
+
+  function wrapReportLinesJa(text, maxChars) {
+    const limit = maxChars || 34;
+    return String(text || "")
+      .split("\n")
+      .map(function (paragraph) {
+        const trimmed = paragraph.trim();
+        if (!trimmed) return "";
+        if (trimmed.indexOf("===") === 0 || trimmed.indexOf("---") === 0) {
+          return paragraph;
+        }
+        const chars = Array.from(trimmed);
+        const lines = [];
+        let current = "";
+        for (let i = 0; i < chars.length; i++) {
+          current += chars[i];
+          if (Array.from(current).length >= limit) {
+            lines.push("  " + current);
+            current = "";
+          }
+        }
+        if (current) lines.push("  " + current);
+        return lines.join("\n");
+      })
+      .join("\n");
+  }
+
+  function downloadReport() {
+    if (!currentReportData) return;
+
+    const line = "==================================================";
+    const subLine = "--------------------------------------------------";
+
+    const rawText = [
+      line,
+      "  【11〜12月 復縁運・四柱推命 詳細鑑定レポート】",
+      "  バイトビン ・ 感情に寄り添う詳細鑑定（2,000円・税込）",
+      line,
+      "",
+      "■ お客様基本情報",
+      "  ・お名前（ニックネーム）：" + currentReportData.name + "（" + currentReportData.gender + "）",
+      "  ・干支 / 日柱     ：" + currentReportData.ddi + " / " + currentReportData.dayGanJi + " 日柱",
+      "  ・生年月日（西暦）   ：" + currentReportData.dateStr,
+      "  ・命式情報       ：" + currentReportData.saju,
+      "",
+      subLine,
+      "■ 【核心まとめ】11〜12月 復縁運の流れ",
+      subLine,
+      "  ▶ " + currentReportData.previewSummary,
+      "",
+      currentReportData.previewText,
+      "",
+      subLine,
+      "■ 1. お相手の現在の本音と未練度",
+      subLine,
+      "  ▶ " + currentReportData.summaryMind,
+      "",
+      currentReportData.detailMind,
+      "",
+      subLine,
+      "■ 2. 連絡が来る・距離が縮まりやすい時期",
+      subLine,
+      "  ▶ " + currentReportData.summaryTiming,
+      "",
+      currentReportData.detailTiming,
+      "",
+      subLine,
+      "■ 3. 自分から連絡すべき？待つべき？実践アドバイス",
+      subLine,
+      "  ▶ " + currentReportData.summaryAction,
+      "",
+      currentReportData.detailAction,
+      "",
+      line,
+      "  ※ 本レポートは伝統的な命理学・データに基づく参考および心の整理を目的としたものです。",
+      "  ※ お問い合わせ：バイトビン | bytebean.contact@gmail.com | 010-9878-9918",
+      line
+    ].join("\n");
+
+    const text = wrapReportLinesJa(rawText, 34);
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (currentReportData.name || "お客様") + "_11-12月_復縁運_詳細鑑定.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function openPolicyModal(type) {
+    const titleEl = document.getElementById("policyTitle");
+    const bodyEl = document.getElementById("policyBody");
+    if (type === "terms") {
+      titleEl.innerText = "利用規約（バイトビン）";
+      bodyEl.innerText =
+        "第1条（適用）\n本規約は、バイトビン（以下「当社」）が提供するオンライン四柱推命・復縁運デジタル鑑定サービスの利用条件を定めるものです。\n\n" +
+        "第2条（サービス内容と提供方法）\n1. ご入力いただいた生年月日等の情報をもとに鑑定レポートを作成し、画面表示およびテキスト保存にて提供します。\n2. 本鑑定は参考および心の整理を目的としたものであり、医療・法律・投資等の専門的判断を代替するものではありません。\n\n" +
+        "第3条（料金・キャンセル・返金）\n1. 料金は2,000円（税込）です。コンテンツの閲覧・提供前であればキャンセル・返金のご相談が可能ですが、個別生成・閲覧が完了したデジタルコンテンツは提供完了後の返金・キャンセルをお受けできない場合があります。\n2. 重複決済やシステム不具合等により正常にご提供いただけなかった場合は、確認のうえ返金または再提供にて対応いたします。\n\n" +
+        "第4条（禁止事項・お問い合わせ）\nコンテンツや画面の無断複製・再配布を禁じます。お問い合わせ：bytebean.contact@gmail.com / 010-9878-9918";
+    } else {
+      titleEl.innerText = "プライバシーポリシー（バイトビン）";
+      bodyEl.innerText =
+        "1. 取得する情報\n鑑定結果の提供、決済処理およびお問い合わせ対応のため、お名前（ニックネーム）、性別、生年月日、生まれた時間（任意）、注文・決済情報、お問い合わせ時の連絡先・メールアドレス等を取得する場合があります。\n\n" +
+        "2. 利用目的\n四柱推命・復縁運レポートの生成および提供、決済確認・返金対応、お問い合わせ対応、サービスの維持・改善。\n\n" +
+        "3. 保管期間と安全管理\n利用目的の達成に必要な期間および関係法令に基づく保存期間の範囲内で適切に管理し、不要となった情報は安全な方法で消去します。\n\n" +
+        "4. お問い合わせ窓口\nバイトビン 個人情報窓口：bytebean.contact@gmail.com / 010-9878-9918";
+    }
+    document.getElementById("policyModal").style.display = "flex";
+  }
+
+  function closePolicyModal() {
+    document.getElementById("policyModal").style.display = "none";
+  }
+
+  window.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("previewBtn").addEventListener("click", runPreview);
+    document.getElementById("openPayModalBtn").addEventListener("click", openPayModal);
+    document.getElementById("closePayModalBtn").addEventListener("click", closePayModal);
+    document.getElementById("confirmPayBtn").addEventListener("click", requestTossPayment);
+    document.getElementById("downloadBtn").addEventListener("click", downloadReport);
+    document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+    document.getElementById("openTermsBtn").addEventListener("click", function () { openPolicyModal("terms"); });
+    document.getElementById("openPrivacyBtn").addEventListener("click", function () { openPolicyModal("privacy"); });
+    document.getElementById("closePolicyModalBtn").addEventListener("click", closePolicyModal);
+
+    document.querySelectorAll(".pay-method").forEach(function (el) {
+      el.addEventListener("click", function () {
+        selectMethod(el);
+      });
+    });
+
+    try {
+      const verifiedPaymentRaw = sessionStorage.getItem("saju_ja_verified_payment");
+      const savedReportRaw = sessionStorage.getItem("saju_ja_report_data");
+
+      if (verifiedPaymentRaw && savedReportRaw) {
+        const verifiedPayment = JSON.parse(verifiedPaymentRaw);
+        const savedReport = JSON.parse(savedReportRaw);
+
+        if (
+          verifiedPayment &&
+          verifiedPayment.ok === true &&
+          Number(verifiedPayment.amount) === PAYMENT_AMOUNT &&
+          savedReport &&
+          savedReport.name
+        ) {
+          currentReportData = savedReport;
+          if (savedReport.name) document.getElementById("userName").value = savedReport.name;
+          if (savedReport.dateStr) document.getElementById("birthDate").value = savedReport.dateStr;
+          if (savedReport.hourVal) document.getElementById("birthHour").value = savedReport.hourVal;
+
+          renderReportToDOM(savedReport);
+          document.getElementById("resultSection").style.display = "block";
+          unlockReportUI();
+        }
+      }
+    } catch (e) {
+      console.error("決済状態復元エラー:", e);
+    }
+  });
+})();
+</script>
+</body>
+</html>
