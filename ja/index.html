@@ -325,6 +325,9 @@
   // TODO: PG 심사 및 실결제 전환 시 실제 클라이언트 키로 교체하세요.
   const TOSS_CLIENT_KEY = "test_ck_c19ALaObYIwu1NUiqazZx7gKQyxLT2v3Vk";
   const PAYMENT_AMOUNT = 2000;
+  const STORAGE_REPORT_KEY = "saju_jp_report_data";
+  const STORAGE_PAYMENT_KEY = "saju_jp_verified_payment";
+  const STORAGE_PENDING_KEY = "saju_jp_pending_order";
 
   let currentReportData = null;
   let selectedPayMethod = "CARD";
@@ -332,6 +335,31 @@
   let isPaying = false;
   let isReportUnlocked = false;
   let paidCustomerSignature = "";
+
+  function writePersistentJson(key, value) {
+    const serialized = JSON.stringify(value);
+    try { sessionStorage.setItem(key, serialized); } catch (e) {}
+    try { localStorage.setItem(key, serialized); } catch (e) {}
+  }
+
+  function readPersistentJson(key) {
+    try {
+      const fromSession = sessionStorage.getItem(key);
+      if (fromSession) return JSON.parse(fromSession);
+    } catch (e) {}
+    try {
+      const fromLocal = localStorage.getItem(key);
+      if (fromLocal) return JSON.parse(fromLocal);
+    } catch (e) {}
+    return null;
+  }
+
+  function clearPersistentKeys() {
+    [STORAGE_REPORT_KEY, STORAGE_PAYMENT_KEY, STORAGE_PENDING_KEY, "saju_report_data", "saju_verified_payment", "saju_pending_order"].forEach(function (k) {
+      try { sessionStorage.removeItem(k); } catch (e) {}
+      try { localStorage.removeItem(k); } catch (e) {}
+    });
+  }
 
   function syncCoreFlowHeading(unlocked) {
     const heading = document.getElementById("coreFlowTitle");
@@ -350,12 +378,7 @@
     currentReportData = null;
     isReportUnlocked = false;
     paidCustomerSignature = "";
-
-    try {
-      sessionStorage.removeItem("saju_report_data");
-      sessionStorage.removeItem("saju_verified_payment");
-      sessionStorage.removeItem("saju_pending_order");
-    } catch (e) {}
+    clearPersistentKeys();
 
     document.getElementById("userName").value = "";
     document.getElementById("gender").value = "F";
@@ -595,10 +618,7 @@
     };
 
     renderReportToDOM(currentReportData);
-
-    try {
-      sessionStorage.setItem("saju_report_data", JSON.stringify(currentReportData));
-    } catch (e) {}
+    writePersistentJson(STORAGE_REPORT_KEY, currentReportData);
 
     document.getElementById("lockedContent").classList.remove("unlocked");
     document.getElementById("paywallOverlay").style.display = "flex";
@@ -708,17 +728,15 @@
       currentReportData.dateStr
     );
 
-    try {
-      sessionStorage.setItem("saju_report_data", JSON.stringify(currentReportData));
-      sessionStorage.setItem("saju_pending_order", JSON.stringify({
-        orderId: orderId,
-        amount: PAYMENT_AMOUNT,
-        methodLabel: selectedPayLabel,
-        buyerName: currentReportData.name,
-        buyerSignature: buyerSig,
-        createdAt: Date.now()
-      }));
-    } catch (e) {}
+    writePersistentJson(STORAGE_REPORT_KEY, currentReportData);
+    writePersistentJson(STORAGE_PENDING_KEY, {
+      orderId: orderId,
+      amount: PAYMENT_AMOUNT,
+      methodLabel: selectedPayLabel,
+      buyerName: currentReportData.name,
+      buyerSignature: buyerSig,
+      createdAt: Date.now()
+    });
 
     try {
       const tossPayments = TossPayments(TOSS_CLIENT_KEY);
@@ -905,34 +923,29 @@
     });
 
     try {
-      const verifiedPaymentRaw = sessionStorage.getItem("saju_verified_payment");
-      const savedReportRaw = sessionStorage.getItem("saju_report_data");
+      const verifiedPayment = readPersistentJson(STORAGE_PAYMENT_KEY) || readPersistentJson("saju_verified_payment");
+      const savedReport = readPersistentJson(STORAGE_REPORT_KEY) || readPersistentJson("saju_report_data");
 
-      if (verifiedPaymentRaw && savedReportRaw) {
-        const verifiedPayment = JSON.parse(verifiedPaymentRaw);
-        const savedReport = JSON.parse(savedReportRaw);
-
-        if (
-          verifiedPayment &&
-          verifiedPayment.ok === true &&
-          Number(verifiedPayment.amount) === PAYMENT_AMOUNT &&
-          savedReport &&
-          savedReport.name
-        ) {
-          currentReportData = savedReport;
-          if (savedReport.name) document.getElementById("userName").value = savedReport.name;
-          if (savedReport.genderCode) {
-            document.getElementById("gender").value = savedReport.genderCode;
-          } else if (savedReport.gender) {
-            document.getElementById("gender").value = savedReport.gender === "男性" ? "M" : "F";
-          }
-          if (savedReport.dateStr) document.getElementById("birthDate").value = savedReport.dateStr;
-          if (savedReport.hourVal) document.getElementById("birthHour").value = savedReport.hourVal;
-
-          renderReportToDOM(savedReport);
-          document.getElementById("resultSection").style.display = "block";
-          unlockReportUI();
+      if (
+        verifiedPayment &&
+        verifiedPayment.ok === true &&
+        Number(verifiedPayment.amount) === PAYMENT_AMOUNT &&
+        savedReport &&
+        savedReport.name
+      ) {
+        currentReportData = savedReport;
+        if (savedReport.name) document.getElementById("userName").value = savedReport.name;
+        if (savedReport.genderCode) {
+          document.getElementById("gender").value = savedReport.genderCode;
+        } else if (savedReport.gender) {
+          document.getElementById("gender").value = savedReport.gender === "男性" ? "M" : "F";
         }
+        if (savedReport.dateStr) document.getElementById("birthDate").value = savedReport.dateStr;
+        if (savedReport.hourVal) document.getElementById("birthHour").value = savedReport.hourVal;
+
+        renderReportToDOM(savedReport);
+        document.getElementById("resultSection").style.display = "block";
+        unlockReportUI();
       }
     } catch (e) {
       console.error("決済状態の復元中にエラーが発生しました:", e);
