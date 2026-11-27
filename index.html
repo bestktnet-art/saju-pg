@@ -345,6 +345,41 @@
   let selectedPayLabel = "신용/체크카드";
   let isPaying = false;
   let isReportUnlocked = false;
+  let paidCustomerSignature = "";
+
+  function normalizeIdentitySignature(name, genderCode, calendarType, dateStr) {
+    const cleanName = String(name || "").trim().replace(/\s+/g, " ");
+    const cleanGender = genderCode === "M" ? "M" : "F";
+    const cleanCal = calendarType === "lunar" ? "lunar" : "solar";
+    const cleanDate = String(dateStr || "").trim();
+    return cleanName + "|" + cleanGender + "|" + cleanCal + "|" + cleanDate;
+  }
+
+  function resetToInitialScreen() {
+    currentReportData = null;
+    isReportUnlocked = false;
+    paidCustomerSignature = "";
+
+    try {
+      sessionStorage.removeItem("saju_report_data");
+      sessionStorage.removeItem("saju_verified_payment");
+      sessionStorage.removeItem("saju_pending_order");
+    } catch (e) {}
+
+    document.getElementById("userName").value = "";
+    document.getElementById("gender").value = "F";
+    document.getElementById("calendarType").value = "solar";
+    document.getElementById("birthDate").value = "";
+    document.getElementById("birthHour").value = "unknown";
+
+    document.getElementById("lockedContent").classList.remove("unlocked");
+    document.getElementById("paywallOverlay").style.display = "flex";
+    document.getElementById("downloadArea").style.display = "none";
+    document.getElementById("resultSection").style.display = "none";
+    setActionButtonLabel(false);
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   function setActionButtonLabel(unlocked) {
     const btn = document.getElementById("previewBtn");
@@ -429,7 +464,7 @@
   }
 
   function runPreview() {
-    const name = (document.getElementById("userName").value || "").trim() || "의뢰인";
+    const rawNameInput = (document.getElementById("userName").value || "").trim();
     const genderCode = document.getElementById("gender").value === "M" ? "M" : "F";
     const gender = genderCode === "M" ? "남성" : "여성";
     const calendarType = document.getElementById("calendarType").value === "lunar" ? "lunar" : "solar";
@@ -443,6 +478,20 @@
       return;
     }
 
+    if (isReportUnlocked && paidCustomerSignature) {
+      const currentSig = normalizeIdentitySignature(rawNameInput || "의뢰인", genderCode, calendarType, dateStr);
+      if (currentSig === paidCustomerSignature && currentReportData) {
+        renderReportToDOM(currentReportData);
+        document.getElementById("resultSection").style.display = "block";
+        unlockReportUI();
+        document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      resetToInitialScreen();
+      return;
+    }
+
+    const name = rawNameInput || "의뢰인";
     const parts = dateStr.split("-").map(Number);
     const rawY = parts[0];
     const rawM = parts[1];
@@ -574,14 +623,10 @@
       sessionStorage.setItem("saju_report_data", JSON.stringify(currentReportData));
     } catch (e) {}
 
-    if (isReportUnlocked) {
-      unlockReportUI();
-    } else {
-      document.getElementById("lockedContent").classList.remove("unlocked");
-      document.getElementById("paywallOverlay").style.display = "flex";
-      document.getElementById("downloadArea").style.display = "none";
-      setActionButtonLabel(false);
-    }
+    document.getElementById("lockedContent").classList.remove("unlocked");
+    document.getElementById("paywallOverlay").style.display = "flex";
+    document.getElementById("downloadArea").style.display = "none";
+    setActionButtonLabel(false);
 
     document.getElementById("resultSection").style.display = "block";
     document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -684,6 +729,13 @@
       ? (window.location.origin + baseDir)
       : "https://bestktnet-art.github.io/saju-pg/";
 
+    const buyerSig = normalizeIdentitySignature(
+      currentReportData.name,
+      currentReportData.genderCode,
+      currentReportData.calendarType,
+      currentReportData.dateStr
+    );
+
     try {
       sessionStorage.setItem("saju_report_data", JSON.stringify(currentReportData));
       sessionStorage.setItem("saju_pending_order", JSON.stringify({
@@ -691,6 +743,7 @@
         amount: PAYMENT_AMOUNT,
         methodLabel: selectedPayLabel,
         buyerName: currentReportData.name,
+        buyerSignature: buyerSig,
         createdAt: Date.now()
       }));
     } catch (e) {}
@@ -727,6 +780,15 @@
 
   function unlockReportUI() {
     isReportUnlocked = true;
+    if (currentReportData) {
+      const resolvedGenderCode = currentReportData.genderCode || (currentReportData.gender === "남성" ? "M" : "F");
+      paidCustomerSignature = normalizeIdentitySignature(
+        currentReportData.name,
+        resolvedGenderCode,
+        currentReportData.calendarType,
+        currentReportData.dateStr
+      );
+    }
     document.getElementById("lockedContent").classList.add("unlocked");
     document.getElementById("paywallOverlay").style.display = "none";
     document.getElementById("downloadArea").style.display = "flex";
