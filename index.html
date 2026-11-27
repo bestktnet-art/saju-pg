@@ -18,9 +18,11 @@
   .field label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #444; }
   .field input, .field select { width: 100%; padding: 12px; border: 1px solid #d5d0dc; border-radius: 8px; font-size: 15px; background: #fff; }
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .row-3 { display: grid; grid-template-columns: 110px 1fr 1fr; gap: 10px; }
   .btn-primary { width: 100%; padding: 15px; background: #5b2c83; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 6px; }
   .btn-primary:hover { background: #471f69; }
   .btn-primary:disabled { background: #9e8cb0; cursor: not-allowed; }
+  .helper-note { font-size: 11.5px; color: #666; margin-top: 6px; line-height: 1.5; }
 
   /* 결과 영역 */
   #resultSection { display: none; border-top: 8px solid #f3f1f5; }
@@ -82,6 +84,11 @@
   .btn-confirm-pay { flex: 2; padding: 12px; background: #e63956; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; }
   .btn-confirm-pay:disabled { background: #e09aa6; cursor: not-allowed; }
   .policy-body { font-size: 12.5px; color: #444; line-height: 1.7; white-space: pre-line; }
+
+  @media (max-width: 520px) {
+    .row-3 { grid-template-columns: 1fr 1fr; }
+    .row-3 .calendar-field { grid-column: 1 / -1; }
+  }
 </style>
 </head>
 <body>
@@ -89,7 +96,7 @@
 <div class="wrap">
   <div class="header">
     <h1>그 사람 마음에, 아직 내가 있을까?</h1>
-    <p>여운이 오래 남았다면, 생년월일 입력으로 그 사람 마음 흐름을 조용히 살펴보세요.</p>
+    <p>여운이 오래 남았다면, 생년월일 입력으로 그 사람 마음을 조용히 살펴보세요.</p>
   </div>
 
   <!-- 생년월일 및 태어난 시 입력 -->
@@ -108,10 +115,17 @@
       </div>
     </div>
 
-    <div class="row-2">
+    <div class="row-3">
+      <div class="field calendar-field">
+        <label for="calendarType">양력 / 음력</label>
+        <select id="calendarType">
+          <option value="solar" selected>양력</option>
+          <option value="lunar">음력</option>
+        </select>
+      </div>
       <div class="field">
-        <label for="birthDate">양력 생년월일</label>
-        <input type="date" id="birthDate" value="1993-10-14">
+        <label for="birthDate">생년월일</label>
+        <input type="date" id="birthDate" value="1994-01-24">
       </div>
       <div class="field">
         <label for="birthHour">태어난 시간</label>
@@ -132,6 +146,7 @@
         </select>
       </div>
     </div>
+    <div class="helper-note">※ 설날·입춘 전 출생자는 명리 연도 기준 전년도 띠가 적용되며, 음력 선택 시 근사 양력으로 환산해 계산합니다.</div>
 
     <button type="button" class="btn-primary" id="previewBtn">무료 맛보기 재회운 확인하기</button>
   </div>
@@ -322,6 +337,18 @@
   let selectedPayLabel = "신용/체크카드";
   let isPaying = false;
 
+  function approximateSolarFromLunar(lunarYear, lunarMonth, lunarDay) {
+    const baseUtc = Date.UTC(lunarYear, 0, 1);
+    const springFestivalOffset = ((lunarYear * 11 + 23) % 29) + 21;
+    const monthOffset = Math.round((lunarMonth - 1) * 29.53059) + (lunarDay - 1);
+    const solarDate = new Date(baseUtc + (springFestivalOffset + monthOffset) * 86400000);
+    return {
+      y: solarDate.getUTCFullYear(),
+      m: solarDate.getUTCMonth() + 1,
+      d: solarDate.getUTCDate()
+    };
+  }
+
   function getUpcomingPeriodCandidates(curMonthNum, nextMonthNum, curDayNum) {
     const curM = curMonthNum + "월";
     const nextM = nextMonthNum + "월";
@@ -388,6 +415,8 @@
     const name = (document.getElementById("userName").value || "").trim() || "의뢰인";
     const genderCode = document.getElementById("gender").value === "M" ? "M" : "F";
     const gender = genderCode === "M" ? "남성" : "여성";
+    const calendarType = document.getElementById("calendarType").value === "lunar" ? "lunar" : "solar";
+    const calendarLabel = calendarType === "lunar" ? "음력" : "양력";
     const dateStr = document.getElementById("birthDate").value;
     const hourVal = document.getElementById("birthHour").value;
     const isHourUnknown = (hourVal === "unknown");
@@ -398,9 +427,17 @@
     }
 
     const parts = dateStr.split("-").map(Number);
-    const y = parts[0];
-    const m = parts[1];
-    const d = parts[2];
+    const rawY = parts[0];
+    const rawM = parts[1];
+    const rawD = parts[2];
+
+    const solar = (calendarType === "lunar")
+      ? approximateSolarFromLunar(rawY, rawM, rawD)
+      : { y: rawY, m: rawM, d: rawD };
+
+    const y = solar.y;
+    const m = solar.m;
+    const d = solar.d;
 
     let sajuYear = y;
     if (m === 1 || (m === 2 && d < 4)) sajuYear -= 1;
@@ -433,7 +470,8 @@
     const hourJiName = JIJI[((hourNum % 12) + 12) % 12];
     const hourShort = isHourUnknown ? "시각 미상" : (hourJiName + " 시주");
     const hourText = isHourUnknown ? "태어난 시: 모름(삼주 기준 풀이)" : "태어난 시: " + hourJiName + " 기준";
-    const sajuText = "연 " + CHEONGAN[yGan] + JIJI[yJi] + " · 월 " + CHEONGAN[mGan] + JIJI[mJi] + " · 일 " + dayGanJi + " · 성별 " + gender + " (" + hourText + ")";
+    const birthDisplay = calendarLabel + " " + dateStr;
+    const sajuText = "연 " + CHEONGAN[yGan] + JIJI[yJi] + " · 월 " + CHEONGAN[mGan] + JIJI[mJi] + " · 일 " + dayGanJi + " · " + calendarLabel + " · 성별 " + gender + " (" + hourText + ")";
 
     const genderOffset = (genderCode === "M") ? 1 : 0;
     const hourSeed = isHourUnknown ? 2 : hourNum;
@@ -486,7 +524,10 @@
       name: name,
       genderCode: genderCode,
       gender: gender,
+      calendarType: calendarType,
+      calendarLabel: calendarLabel,
       dateStr: dateStr,
+      birthDisplay: birthDisplay,
       hourVal: hourVal,
       ddi: ddi,
       isTop3: isTop3,
@@ -525,6 +566,10 @@
     if (genderSelect) {
       genderSelect.value = resolvedGenderCode;
     }
+    const calendarSelect = document.getElementById("calendarType");
+    if (calendarSelect && data.calendarType) {
+      calendarSelect.value = data.calendarType;
+    }
 
     document.getElementById("top3BadgeArea").innerHTML = data.isTop3
       ? '<div class="tag-top3">재회운 상승 흐름 TOP 3 해당 (' + escapeHtml(data.ddi) + ')</div>'
@@ -556,8 +601,9 @@
       return;
     }
     const genderLabel = currentReportData.gender || (currentReportData.genderCode === "M" ? "남성" : "여성");
+    const birthInfo = currentReportData.birthDisplay || currentReportData.dateStr;
     document.getElementById("modalBuyerInfo").innerText =
-      "신청자: " + currentReportData.name + " (" + genderLabel + " · " + currentReportData.dateStr + " · " + currentReportData.hourText + ")";
+      "신청자: " + currentReportData.name + " (" + genderLabel + " · " + birthInfo + " · " + currentReportData.hourText + ")";
     document.getElementById("payModal").style.display = "flex";
   }
 
@@ -690,6 +736,7 @@
     if (!currentReportData) return;
 
     const genderLabel = currentReportData.gender || (currentReportData.genderCode === "M" ? "남성" : "여성");
+    const birthInfo = currentReportData.birthDisplay || currentReportData.dateStr;
     const line = "==================================================";
     const subLine = "--------------------------------------------------";
 
@@ -702,7 +749,7 @@
       "■ 의뢰인 기본 정보",
       "  · 성함(닉네임) : " + currentReportData.name + " (" + genderLabel + ")",
       "  · 띠 / 일주    : " + currentReportData.ddi + " / " + currentReportData.dayGanJi + " 일주",
-      "  · 양력 생년월일 : " + currentReportData.dateStr,
+      "  · 생년월일     : " + birthInfo,
       "  · 명식 정보    : " + currentReportData.saju,
       "",
       subLine,
@@ -813,6 +860,7 @@
           } else if (savedReport.gender) {
             document.getElementById("gender").value = savedReport.gender === "남성" ? "M" : "F";
           }
+          if (savedReport.calendarType) document.getElementById("calendarType").value = savedReport.calendarType;
           if (savedReport.dateStr) document.getElementById("birthDate").value = savedReport.dateStr;
           if (savedReport.hourVal) document.getElementById("birthHour").value = savedReport.hourVal;
 
