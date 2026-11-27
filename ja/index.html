@@ -1,1 +1,654 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>復縁運・四柱推命 詳細鑑定（11〜12月）</title>
+<!-- トスペイメンツ v2 決済SDK -->
+<script src="https://js.tosspayments.com/v2/standard"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif; background: #f3f1f5; margin: 0; padding: 20px; color: #222; line-height: 1.65; }
+  .wrap { max-width: 540px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); overflow: hidden; }
+  .header { background: linear-gradient(135deg, #2b1e38, #4a2c5e); color: #fff; padding: 26px 24px; text-align: center; }
+  .header .badge { display: inline-block; background: rgba(255,255,255,0.18); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
+  .header h1 { margin: 0 0 8px; font-size: 20px; line-height: 1.45; }
+  .header p { margin: 0; font-size: 13px; color: #e0d6eb; }
+  .section { padding: 24px; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #444; }
+  .field input, .field select { width: 100%; padding: 12px; border: 1px solid #d5d0dc; border-radius: 8px; font-size: 15px; background: #fff; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .btn-primary { width: 100%; padding: 15px; background: #5b2c83; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 6px; }
+  .btn-primary:hover { background: #471f69; }
+  .btn-primary:disabled { background: #9e8cb0; cursor: not-allowed; }
 
+  /* 結果エリア */
+  #resultSection { display: none; border-top: 8px solid #f3f1f5; }
+  .meta-line { font-size: 13px; color: #5b2c83; margin: 8px 0 16px; font-weight: bold; }
+
+  .preview-card { background: #faf8fc; border: 1px solid #e6dff0; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+  .preview-card h3 { margin: 0 0 8px; font-size: 16px; color: #3b1d54; }
+  .summary-quote { background: #f3ecf9; border-left: 4px solid #6b3fa0; padding: 10px 12px; border-radius: 6px; font-size: 13.5px; font-weight: bold; color: #34194d; margin-bottom: 12px; }
+  .preview-card p { margin: 0 0 10px; font-size: 14px; line-height: 1.75; color: #333; }
+  .tag-top3 { display: inline-block; background: #ffe4e8; color: #c92a42; font-weight: bold; font-size: 12px; padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; }
+
+  /* ロック領域 */
+  .locked-wrapper { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #e6dff0; }
+  .locked-content { padding: 18px; background: #fff; filter: blur(5px); user-select: none; pointer-events: none; transition: filter 0.3s ease; }
+  .locked-content.unlocked { filter: none; user-select: auto; pointer-events: auto; }
+  .locked-content h4 { margin: 14px 0 6px; font-size: 15px; color: #2b1e38; }
+  .locked-content h4:first-child { margin-top: 0; }
+  .locked-content .one-line-summary { font-size: 13px; font-weight: bold; color: #5b2c83; background: #faf8fc; padding: 8px 10px; border-radius: 6px; margin: 0 0 8px; }
+  .locked-content p { margin: 0 0 10px; font-size: 14px; line-height: 1.78; color: #333; }
+
+  .paywall-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0.96) 45%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 24px; text-align: center;
+  }
+  .paywall-overlay p { font-size: 15px; font-weight: bold; color: #222; margin: 0 0 6px; }
+  .paywall-overlay span { font-size: 13px; color: #666; margin-bottom: 16px; }
+  .btn-pay { background: #e63956; color: #fff; border: none; padding: 14px 24px; border-radius: 10px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(230,57,86,0.3); }
+  .btn-pay:hover { background: #cc2944; }
+
+  /* ダウンロードエリア */
+  .download-area { display: none; margin-top: 18px; gap: 10px; }
+  .btn-download { flex: 1; padding: 13px; background: #2b1e38; color: #fff; border: none; border-radius: 8px; font-size: 13.5px; font-weight: bold; cursor: pointer; }
+  .btn-print { flex: 1; padding: 13px; background: #ece7f2; color: #2b1e38; border: none; border-radius: 8px; font-size: 13.5px; font-weight: bold; cursor: pointer; }
+
+  /* 同意チェック・案内・フッター */
+  .consent-box { margin-top: 14px; font-size: 12px; color: #444; background: #faf8fc; padding: 10px 12px; border-radius: 8px; border: 1px solid #ece6f3; }
+  .consent-box label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0; }
+  .consent-box input[type="checkbox"] { margin-top: 2px; }
+
+  .notice-box { margin-top: 18px; padding: 14px; background: #f8f7fa; border-radius: 10px; font-size: 12px; color: #555; line-height: 1.65; }
+  .notice-box strong { color: #2b1e38; display: block; margin-bottom: 4px; }
+
+  .footer { background: #f7f5f9; border-top: 1px solid #e6e0ec; padding: 18px 20px; font-size: 11.5px; color: #666; line-height: 1.65; }
+  .footer-links { margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .footer-links button { background: none; border: none; padding: 0; color: #5b2c83; text-decoration: underline; font-size: 11.5px; cursor: pointer; }
+
+  /* モーダル */
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); align-items: center; justify-content: center; padding: 16px; z-index: 999; }
+  .modal { background: #fff; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; border-radius: 14px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  .modal h3 { margin: 0 0 12px; font-size: 18px; color: #2b1e38; }
+  .order-summary { background: #f8f7fa; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
+  .pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+  .pay-method { border: 1px solid #ccc; border-radius: 8px; padding: 10px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; background: #fff; }
+  .pay-method.active { border-color: #5b2c83; background: #f4eef9; color: #5b2c83; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .btn-cancel { flex: 1; padding: 12px; background: #eee; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+  .btn-confirm-pay { flex: 2; padding: 12px; background: #e63956; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; }
+  .btn-confirm-pay:disabled { background: #e09aa6; cursor: not-allowed; }
+  .policy-body { font-size: 12.5px; color: #444; line-height: 1.72; white-space: pre-line; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="header">
+    <div class="badge">ショート特集・11〜12月 復縁運 詳細鑑定</div>
+    <h1>あの人から11〜12月に再び連絡はある？</h1>
+    <p>生年月日と生まれた時間（不明可）を入力すると、心の流れに沿った復縁の兆しを読み解きます。</p>
+  </div>
+
+  <!-- 入力エリア -->
+  <div class="section">
+    <div class="row-2">
+      <div class="field">
+        <label for="userName">お名前（またはニックネーム）</label>
+        <input type="text" id="userName" placeholder="例：サクラ" value="サクラ">
+      </div>
+      <div class="field">
+        <label for="gender">性別</label>
+        <select id="gender">
+          <option value="F">女性</option>
+          <option value="M">男性</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row-2">
+      <div class="field">
+        <label for="birthDate">生年月日（西暦）</label>
+        <input type="date" id="birthDate" value="1993-10-14">
+      </div>
+      <div class="field">
+        <label for="birthHour">生まれた時間</label>
+        <select id="birthHour">
+          <option value="unknown" selected>不明（時間未入力）</option>
+          <option value="0">子の刻（23:30〜01:29）</option>
+          <option value="1">丑の刻（01:30〜03:29）</option>
+          <option value="2">寅の刻（03:30〜05:29）</option>
+          <option value="3">卯の刻（05:30〜07:29）</option>
+          <option value="4">辰の刻（07:30〜09:29）</option>
+          <option value="5">巳の刻（09:30〜11:29）</option>
+          <option value="6">午の刻（11:30〜13:29）</option>
+          <option value="7">未の刻（13:30〜15:29）</option>
+          <option value="8">申の刻（15:30〜17:29）</option>
+          <option value="9">酉の刻（17:30〜19:29）</option>
+          <option value="10">戌の刻（19:30〜21:29）</option>
+          <option value="11">亥の刻（21:30〜23:29）</option>
+        </select>
+      </div>
+    </div>
+
+    <button type="button" class="btn-primary" id="previewBtn">無料お試しで復縁運を見る</button>
+  </div>
+
+  <!-- 結果・お試し・ロック -->
+  <div class="section" id="resultSection">
+    <div id="top3BadgeArea"></div>
+    <strong id="userSummaryTitle" style="font-size:17px;"></strong>
+    <div class="meta-line" id="sajuMetaText"></div>
+
+    <!-- 無料お試し -->
+    <div class="preview-card">
+      <h3>【無料お試し】11〜12月 復縁運の核心</h3>
+      <div class="summary-quote" id="previewSummary"></div>
+      <p id="previewText"></p>
+    </div>
+
+    <!-- ロック＆決済誘導 -->
+    <div class="locked-wrapper">
+      <div class="locked-content" id="lockedContent">
+        <h4>1. お相手の現在の本音と未練度</h4>
+        <div class="one-line-summary" id="summaryMind"></div>
+        <p id="detailMind"></p>
+
+        <h4>2. 連絡が来る・距離が縮まりやすい時期</h4>
+        <div class="one-line-summary" id="summaryTiming"></div>
+        <p id="detailTiming"></p>
+
+        <h4>3. 自分から連絡すべき？待つべき？実践アドバイス</h4>
+        <div class="one-line-summary" id="summaryAction"></div>
+        <p id="detailAction"></p>
+      </div>
+
+      <div class="paywall-overlay" id="paywallOverlay">
+        <p>決済完了後、詳細鑑定の全文をご覧いただけます</p>
+        <span>一言まとめ＋感情に寄り添う詳細鑑定・時期・行動指針をすべて表示</span>
+        <button type="button" class="btn-pay" id="openPayModalBtn">2,000円（税込）で詳細鑑定を見る</button>
+      </div>
+    </div>
+
+    <!-- 決済後ダウンロード -->
+    <div class="download-area" id="downloadArea">
+      <button type="button" class="btn-download" id="downloadBtn">読みやすいレポート保存（.txt）</button>
+      <button type="button" class="btn-print" id="printBtn">印刷 / PDF保存</button>
+    </div>
+
+    <!-- 利用・返金案内 -->
+    <div class="notice-box">
+      <strong>ご利用・キャンセル・返金について</strong>
+      ・本商品はご入力内容をもとに四柱推命・復縁運のデジタル鑑定レポート（画面表示およびテキスト保存）を提供するオンラインサービスです。物理的な商品の発送はありません。<br>
+      ・鑑定結果は伝統的な命理学・データに基づく参考および心の整理を目的としたものであり、医療・法律・投資等の専門的判断に代わるものではありません。<br>
+      ・コンテンツの閲覧・提供前であればキャンセル・返金のご相談が可能ですが、個別生成・閲覧が完了したデジタルコンテンツの性質上、提供完了後の返金・キャンセルはお受けできない場合があります。重複決済やシステム不具合等により正常にご提供できなかった場合は、確認のうえ返金または再提供にて対応いたします。
+    </div>
+  </div>
+
+  <!-- フッター事業者情報 -->
+  <footer class="footer">
+    <div>
+      <strong>バイトビン</strong>｜代表者：ファン・チョルウ<br>
+      事業者登録番号：371-03-04592｜通信販売業届出番号：届出準備中<br>
+      所在地：ソウル特別市江南区自谷路101、レミアン江南ヒルズ商街1階101号（自谷洞）<br>
+      お問い合わせ：bytebean.contact@gmail.com｜電話番号：010-9878-9918
+    </div>
+    <div class="footer-links">
+      <button type="button" id="openTermsBtn">利用規約</button>
+      <button type="button" id="openPrivacyBtn">プライバシーポリシー</button>
+    </div>
+  </footer>
+</div>
+
+<!-- 決済モーダル -->
+<div class="modal-backdrop" id="payModal">
+  <div class="modal">
+    <h3>安全決済（2,000円・税込）</h3>
+    <div class="order-summary">
+      <div><strong>商品名：</strong>11〜12月 復縁運・四柱推命 詳細鑑定レポート</div>
+      <div><strong>料金：</strong>2,000円（税込・デジタル提供）</div>
+      <div id="modalBuyerInfo"></div>
+    </div>
+    <div class="pay-methods">
+      <button type="button" class="pay-method active" data-method="CARD" data-label="クレジットカード・デビット">カード決済</button>
+      <button type="button" class="pay-method" data-method="EASY_PAY" data-label="かんたん決済">かんたん決済</button>
+      <button type="button" class="pay-method" data-method="TRANSFER" data-label="口座振替・送金">口座振替</button>
+      <button type="button" class="pay-method" data-method="MOBILE_PHONE" data-label="モバイル決済">モバイル決済</button>
+    </div>
+    <div class="consent-box">
+      <label>
+        <input type="checkbox" id="payConsentCheck" checked>
+        <span>デジタルコンテンツの提供方法、キャンセル・返金条件、利用規約およびプライバシーポリシーに同意します。</span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="closePayModalBtn">キャンセル</button>
+      <button type="button" class="btn-confirm-pay" id="confirmPayBtn">2,000円で決済する</button>
+    </div>
+  </div>
+</div>
+
+<!-- 規約・プライバシーモーダル -->
+<div class="modal-backdrop" id="policyModal">
+  <div class="modal">
+    <h3 id="policyTitle">案内</h3>
+    <div class="policy-body" id="policyBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="closePolicyModalBtn">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const CHEONGAN = ["甲(コウ)", "乙(オツ)", "丙(ヘイ)", "丁(テイ)", "戊(ボ)", "己(キ)", "庚(コウ)", "辛(シン)", "壬(ジン)", "癸(キ)"];
+  const JIJI = ["子(ネ)", "丑(ウシ)", "寅(トラ)", "卯(ウ)", "辰(タツ)", "巳(ミ)", "午(ウマ)", "未(ヒツジ)", "申(サル)", "酉(トリ)", "戌(イヌ)", "亥(イ)"];
+  const DDI_NAME = ["子年(ねずみ)", "丑年(うし)", "寅年(とら)", "卯年(うさぎ)", "辰年(たつ)", "巳年(へび)", "午年(うま)", "未年(ひつじ)", "申年(さる)", "酉年(とり)", "戌年(いぬ)", "亥年(いのしし)"];
+  const TOP3_DDI = ["酉年(とり)", "戌年(いぬ)", "寅年(とら)"];
+
+  // TODO: PG審査および本番決済切替時に実運用クライアントキーへ差し替えてください
+  const TOSS_CLIENT_KEY = "test_ck_c19ALaObYIwu1NUiqazZx7gKQyxLT2v3Vk";
+  const PAYMENT_AMOUNT = 2000;
+  const PAYMENT_CURRENCY = "KRW";
+
+  let currentReportData = null;
+  let selectedPayMethod = "CARD";
+  let selectedPayLabel = "カード決済";
+  let isPaying = false;
+
+  function runPreview() {
+    const name = (document.getElementById("userName").value || "").trim() || "お客様";
+    const gender = document.getElementById("gender").value === "M" ? "男性" : "女性";
+    const dateStr = document.getElementById("birthDate").value;
+    const hourVal = document.getElementById("birthHour").value;
+    const isHourUnknown = (hourVal === "unknown");
+
+    if (!dateStr) {
+      alert("生年月日を入力してください。");
+      return;
+    }
+
+    const parts = dateStr.split("-").map(Number);
+    const y = parts[0];
+    const m = parts[1];
+    const d = parts[2];
+
+    let sajuYear = y;
+    if (m === 1 || (m === 2 && d < 4)) sajuYear -= 1;
+    const yGan = ((sajuYear - 4) % 10 + 10) % 10;
+    const yJi = ((sajuYear - 4) % 12 + 12) % 12;
+
+    const monthSolarStart = [6, 4, 6, 5, 6, 6, 7, 8, 8, 8, 7, 7];
+    let solarMonth = m;
+    if (d < monthSolarStart[m - 1]) solarMonth -= 1;
+    if (solarMonth <= 0) solarMonth += 12;
+    const mJi = (solarMonth + 1) % 12;
+    const mGanStart = ((yGan % 5) * 2 + 2) % 10;
+    const mOffset = (solarMonth >= 2) ? (solarMonth - 2) : (solarMonth + 10);
+    const mGan = (mGanStart + mOffset) % 10;
+
+    const diffDays = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(1900, 0, 1)) / 86400000);
+    const dayCycle = ((10 + diffDays) % 60 + 60) % 60;
+    const dGan = dayCycle % 10;
+    const dJi = dayCycle % 12;
+
+    const ddi = DDI_NAME[yJi];
+    const isTop3 = TOP3_DDI.includes(ddi);
+    const dayGanJi = CHEONGAN[dGan] + JIJI[dJi];
+    const hourText = isHourUnknown ? "生時：不明（三柱基準）" : "生時：" + JIJI[parseInt(hourVal, 10)] + " 基準";
+    const sajuText = "年 " + CHEONGAN[yGan] + JIJI[yJi] + " ・ 月 " + CHEONGAN[mGan] + JIJI[mJi] + " ・ 日 " + dayGanJi + "（" + hourText + "）";
+
+    const previewSummary = isTop3
+      ? "一言まとめ：11〜12月の復縁運が上向く" + ddi + "の流れ。止まっていた温もりが再び通い合う兆しが見えています。"
+      : "一言まとめ：晩秋から初冬にかけて、言葉にできなかった想いがそっと揺れ動く静かな転機が訪れます。";
+
+    const previewText = isTop3
+      ? name + "さん、心の奥にそっとしまっていたお相手とのご縁が、" + ddi + "の11〜12月の流れの中でふたたび息を吹き返そうとしています。とくに" + dayGanJi + "の日柱が持つ柔らかな巡りによって、少し離れていた距離が少しずつ近づく気配があり、お相手の心にも一緒に過ごした温かい記憶がふとよみがえる時期です。"
+      : name + "さん、表向きは穏やかに毎日を過ごされていても、胸の奥にはまだ消えない余韻が残っているのではないでしょうか。" + ddi + "・" + dayGanJi + "の日柱の流れを見ると、11月後半から12月にかけてお二人の心の波が再び重なり合うような、静かで大切な節目が巡ってきています。";
+
+    const summaryMind = "一言まとめ：プライドや照れくささの奥に未練が残っており、様子をうかがっている状態です。";
+    const detailMind = name + "さんと過ごした時間が決して軽いものではなかったと、お相手も時間が経つにつれてより深く実感しています。離れた直後は意地や状況の難しさから背を向けようとしましたが、一人の時間が増えるほど、" + name + "さんのそばで感じた安心感や優しさを思い出す瞬間が増えています。ただ、自分から踏み出して断られたらどうしようという迷いもあり、心だけが先に動いて足踏みしている状態です。";
+
+    const summaryTiming = "一言まとめ：11月第4週〜12月第2週、夜の落ち着いた時間帯の何気ない一言がきっかけになりやすいです。";
+    const detailTiming = "とくに注目したいのは11月第4週から12月第2週にかけての期間です。一日の慌ただしさが落ち着く夜19時〜23時ごろ、重い話し合いや大きな告白よりも、季節の変わり目や日常のちょっとした出来事をきっかけにした短いメッセージの形で気持ちが届きやすくなります。焦る気持ちが強くなるほど一日が長く感じられますので、深呼吸をするようにゆったり構えてみてください。";
+
+    const summaryAction = "一言まとめ：急かしたり責めたりせず、穏やかな日常とやわらかな言葉で安心感を届けてください。";
+    const detailAction = "1）今は強い感情を一気にぶつけるよりも、ふっと受け取りやすい短くやさしい近況や気遣いのトーンを心がけてみてください。" +
+      "2）SNSやメッセージの雰囲気を無理に暗くするよりも、自分自身を大切にしながら落ち着いて過ごしている姿を見せることで、お相手も一歩踏み出しやすくなります。" +
+      "3）連絡がつながったときは過去のわだかまりをすぐに掘り起こすより、まずは今の温度感を合わせながら少しずつ会話を重ねていくことが、再び心を通わせる近道になります。";
+
+    currentReportData = {
+      name: name,
+      gender: gender,
+      dateStr: dateStr,
+      hourVal: hourVal,
+      ddi: ddi,
+      isTop3: isTop3,
+      dayGanJi: dayGanJi,
+      hourText: hourText,
+      saju: sajuText,
+      previewSummary: previewSummary,
+      previewText: previewText,
+      summaryMind: summaryMind,
+      detailMind: detailMind,
+      summaryTiming: summaryTiming,
+      detailTiming: detailTiming,
+      summaryAction: summaryAction,
+      detailAction: detailAction
+    };
+
+    renderReportToDOM(currentReportData);
+
+    try {
+      sessionStorage.setItem("saju_ja_report_data", JSON.stringify(currentReportData));
+    } catch (e) {}
+
+    document.getElementById("lockedContent").classList.remove("unlocked");
+    document.getElementById("paywallOverlay").style.display = "flex";
+    document.getElementById("downloadArea").style.display = "none";
+    document.getElementById("resultSection").style.display = "block";
+    document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function renderReportToDOM(data) {
+    document.getElementById("top3BadgeArea").innerHTML = data.isTop3
+      ? '<div class="tag-top3">特集ピックアップ 11〜12月 復縁運TOP3該当（' + escapeHtml(data.ddi) + '）</div>'
+      : '<div class="tag-top3" style="background:#eef2ff;color:#3b5bdb;">' + escapeHtml(data.ddi) + ' ・ 日柱気運マッチ鑑定</div>';
+
+    document.getElementById("userSummaryTitle").innerText = data.name + "さん（" + data.ddi + "・" + data.dayGanJi + " 日柱）復縁運鑑定";
+    document.getElementById("sajuMetaText").innerText = data.saju;
+    document.getElementById("previewSummary").innerText = data.previewSummary;
+    document.getElementById("previewText").innerText = data.previewText;
+
+    document.getElementById("summaryMind").innerText = data.summaryMind;
+    document.getElementById("detailMind").innerText = data.detailMind;
+    document.getElementById("summaryTiming").innerText = data.summaryTiming;
+    document.getElementById("detailTiming").innerText = data.detailTiming;
+    document.getElementById("summaryAction").innerText = data.summaryAction;
+    document.getElementById("detailAction").innerText = data.detailAction;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function openPayModal() {
+    if (!currentReportData || !currentReportData.name) {
+      alert("先に無料お試しで復縁運をご確認ください。");
+      return;
+    }
+    document.getElementById("modalBuyerInfo").innerText =
+      "お申し込み：" + currentReportData.name + "さん（" + currentReportData.dateStr + "・" + currentReportData.hourText + "）";
+    document.getElementById("payModal").style.display = "flex";
+  }
+
+  function closePayModal() {
+    document.getElementById("payModal").style.display = "none";
+  }
+
+  function selectMethod(el) {
+    document.querySelectorAll(".pay-method").forEach(function (m) {
+      m.classList.remove("active");
+    });
+    el.classList.add("active");
+    selectedPayMethod = el.getAttribute("data-method") || "CARD";
+    selectedPayLabel = el.getAttribute("data-label") || "カード決済";
+  }
+
+  function buildSafeCustomerKey(rawName) {
+    try {
+      const encoded = btoa(unescape(encodeURIComponent(rawName || "guest"))).replace(/[^a-zA-Z0-9_-]/g, "");
+      return ("CUST_JA_" + encoded).slice(0, 24) || "CUST_JA_GUEST_01";
+    } catch (e) {
+      return "CUST_JA_GUEST_01";
+    }
+  }
+
+  async function requestTossPayment() {
+    if (isPaying) return;
+    if (!currentReportData || !currentReportData.name) {
+      alert("先に無料お試しで復縁運をご確認ください。");
+      return;
+    }
+    if (!document.getElementById("payConsentCheck").checked) {
+      alert("ご利用条件・返金案内・規約への同意にチェックを入れてください。");
+      return;
+    }
+    if (typeof TossPayments === "undefined") {
+      alert("決済モジュールを読み込めませんでした。通信環境をご確認ください。");
+      return;
+    }
+
+    isPaying = true;
+    const confirmBtn = document.getElementById("confirmPayBtn");
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = "決済画面を開いています...";
+
+    const orderId = "SAJU_JA_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+    const customerKey = buildSafeCustomerKey(currentReportData.name);
+    const baseDir = window.location.pathname.replace(/[^/]*$/, "");
+    const baseOriginUrl = (window.location.origin && window.location.origin !== "null")
+      ? (window.location.origin + baseDir)
+      : "https://bestktnet-art.github.io/saju-pg/ja/";
+
+    try {
+      sessionStorage.setItem("saju_ja_report_data", JSON.stringify(currentReportData));
+      sessionStorage.setItem("saju_ja_pending_order", JSON.stringify({
+        orderId: orderId,
+        amount: PAYMENT_AMOUNT,
+        currency: PAYMENT_CURRENCY,
+        methodLabel: selectedPayLabel,
+        buyerName: currentReportData.name,
+        createdAt: Date.now()
+      }));
+    } catch (e) {}
+
+    try {
+      const tossPayments = TossPayments(TOSS_CLIENT_KEY);
+      const payment = tossPayments.payment({ customerKey: customerKey });
+
+      await payment.requestPayment({
+        method: selectedPayMethod,
+        amount: {
+          currency: PAYMENT_CURRENCY,
+          value: PAYMENT_AMOUNT
+        },
+        orderId: orderId,
+        orderName: "11〜12月 復縁運・四柱推命 詳細鑑定レポート（2,000円・税込）",
+        successUrl: baseOriginUrl + "success.html",
+        failUrl: baseOriginUrl + "fail.html",
+        customerName: currentReportData.name || "お客様"
+      });
+    } catch (error) {
+      isPaying = false;
+      confirmBtn.disabled = false;
+      confirmBtn.innerText = "2,000円で決済する";
+
+      if (error && (error.code === "USER_CANCEL" || error.code === "PAY_PROCESS_CANCELED")) {
+        alert("決済がキャンセルされました。またいつでもお試しいただけます。");
+      } else {
+        const msg = (error && error.message) ? error.message : "処理中にエラーが発生しました。";
+        alert("決済処理中に問題が発生しました：" + msg);
+      }
+    }
+  }
+
+  function unlockReportUI() {
+    document.getElementById("lockedContent").classList.add("unlocked");
+    document.getElementById("paywallOverlay").style.display = "none";
+    document.getElementById("downloadArea").style.display = "flex";
+  }
+
+  function wrapReportLinesJa(text, maxChars) {
+    const limit = maxChars || 34;
+    return String(text || "")
+      .split("\n")
+      .map(function (paragraph) {
+        const trimmed = paragraph.trim();
+        if (!trimmed) return "";
+        if (trimmed.indexOf("===") === 0 || trimmed.indexOf("---") === 0) {
+          return paragraph;
+        }
+        const chars = Array.from(trimmed);
+        const lines = [];
+        let current = "";
+        for (let i = 0; i < chars.length; i++) {
+          current += chars[i];
+          if (Array.from(current).length >= limit) {
+            lines.push("  " + current);
+            current = "";
+          }
+        }
+        if (current) lines.push("  " + current);
+        return lines.join("\n");
+      })
+      .join("\n");
+  }
+
+  function downloadReport() {
+    if (!currentReportData) return;
+
+    const line = "==================================================";
+    const subLine = "--------------------------------------------------";
+
+    const rawText = [
+      line,
+      "  【11〜12月 復縁運・四柱推命 詳細鑑定レポート】",
+      "  バイトビン ・ 感情に寄り添う詳細鑑定（2,000円・税込）",
+      line,
+      "",
+      "■ お客様基本情報",
+      "  ・お名前（ニックネーム）：" + currentReportData.name + "（" + currentReportData.gender + "）",
+      "  ・干支 / 日柱     ：" + currentReportData.ddi + " / " + currentReportData.dayGanJi + " 日柱",
+      "  ・生年月日（西暦）   ：" + currentReportData.dateStr,
+      "  ・命式情報       ：" + currentReportData.saju,
+      "",
+      subLine,
+      "■ 【核心まとめ】11〜12月 復縁運の流れ",
+      subLine,
+      "  ▶ " + currentReportData.previewSummary,
+      "",
+      currentReportData.previewText,
+      "",
+      subLine,
+      "■ 1. お相手の現在の本音と未練度",
+      subLine,
+      "  ▶ " + currentReportData.summaryMind,
+      "",
+      currentReportData.detailMind,
+      "",
+      subLine,
+      "■ 2. 連絡が来る・距離が縮まりやすい時期",
+      subLine,
+      "  ▶ " + currentReportData.summaryTiming,
+      "",
+      currentReportData.detailTiming,
+      "",
+      subLine,
+      "■ 3. 自分から連絡すべき？待つべき？実践アドバイス",
+      subLine,
+      "  ▶ " + currentReportData.summaryAction,
+      "",
+      currentReportData.detailAction,
+      "",
+      line,
+      "  ※ 本レポートは伝統的な命理学・データに基づく参考および心の整理を目的としたものです。",
+      "  ※ お問い合わせ：バイトビン | bytebean.contact@gmail.com | 010-9878-9918",
+      line
+    ].join("\n");
+
+    const text = wrapReportLinesJa(rawText, 34);
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = (currentReportData.name || "お客様") + "_11-12月_復縁運_詳細鑑定.txt";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function openPolicyModal(type) {
+    const titleEl = document.getElementById("policyTitle");
+    const bodyEl = document.getElementById("policyBody");
+    if (type === "terms") {
+      titleEl.innerText = "利用規約（バイトビン）";
+      bodyEl.innerText =
+        "第1条（適用）\n本規約は、バイトビン（以下「当社」）が提供するオンライン四柱推命・復縁運デジタル鑑定サービスの利用条件を定めるものです。\n\n" +
+        "第2条（サービス内容と提供方法）\n1. ご入力いただいた生年月日等の情報をもとに鑑定レポートを作成し、画面表示およびテキスト保存にて提供します。\n2. 本鑑定は参考および心の整理を目的としたものであり、医療・法律・投資等の専門的判断を代替するものではありません。\n\n" +
+        "第3条（料金・キャンセル・返金）\n1. 料金は2,000円（税込）です。コンテンツの閲覧・提供前であればキャンセル・返金のご相談が可能ですが、個別生成・閲覧が完了したデジタルコンテンツは提供完了後の返金・キャンセルをお受けできない場合があります。\n2. 重複決済やシステム不具合等により正常にご提供いただけなかった場合は、確認のうえ返金または再提供にて対応いたします。\n\n" +
+        "第4条（禁止事項・お問い合わせ）\nコンテンツや画面の無断複製・再配布を禁じます。お問い合わせ：bytebean.contact@gmail.com / 010-9878-9918";
+    } else {
+      titleEl.innerText = "プライバシーポリシー（バイトビン）";
+      bodyEl.innerText =
+        "1. 取得する情報\n鑑定結果の提供、決済処理およびお問い合わせ対応のため、お名前（ニックネーム）、性別、生年月日、生まれた時間（任意）、注文・決済情報、お問い合わせ時の連絡先・メールアドレス等を取得する場合があります。\n\n" +
+        "2. 利用目的\n四柱推命・復縁運レポートの生成および提供、決済確認・返金対応、お問い合わせ対応、サービスの維持・改善。\n\n" +
+        "3. 保管期間と安全管理\n利用目的の達成に必要な期間および関係法令に基づく保存期間の範囲内で適切に管理し、不要となった情報は安全な方法で消去します。\n\n" +
+        "4. お問い合わせ窓口\nバイトビン 個人情報窓口：bytebean.contact@gmail.com / 010-9878-9918";
+    }
+    document.getElementById("policyModal").style.display = "flex";
+  }
+
+  function closePolicyModal() {
+    document.getElementById("policyModal").style.display = "none";
+  }
+
+  window.addEventListener("DOMContentLoaded", function () {
+    document.getElementById("previewBtn").addEventListener("click", runPreview);
+    document.getElementById("openPayModalBtn").addEventListener("click", openPayModal);
+    document.getElementById("closePayModalBtn").addEventListener("click", closePayModal);
+    document.getElementById("confirmPayBtn").addEventListener("click", requestTossPayment);
+    document.getElementById("downloadBtn").addEventListener("click", downloadReport);
+    document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+    document.getElementById("openTermsBtn").addEventListener("click", function () { openPolicyModal("terms"); });
+    document.getElementById("openPrivacyBtn").addEventListener("click", function () { openPolicyModal("privacy"); });
+    document.getElementById("closePolicyModalBtn").addEventListener("click", closePolicyModal);
+
+    document.querySelectorAll(".pay-method").forEach(function (el) {
+      el.addEventListener("click", function () {
+        selectMethod(el);
+      });
+    });
+
+    try {
+      const verifiedPaymentRaw = sessionStorage.getItem("saju_ja_verified_payment");
+      const savedReportRaw = sessionStorage.getItem("saju_ja_report_data");
+
+      if (verifiedPaymentRaw && savedReportRaw) {
+        const verifiedPayment = JSON.parse(verifiedPaymentRaw);
+        const savedReport = JSON.parse(savedReportRaw);
+
+        if (
+          verifiedPayment &&
+          verifiedPayment.ok === true &&
+          Number(verifiedPayment.amount) === PAYMENT_AMOUNT &&
+          savedReport &&
+          savedReport.name
+        ) {
+          currentReportData = savedReport;
+          if (savedReport.name) document.getElementById("userName").value = savedReport.name;
+          if (savedReport.dateStr) document.getElementById("birthDate").value = savedReport.dateStr;
+          if (savedReport.hourVal) document.getElementById("birthHour").value = savedReport.hourVal;
+
+          renderReportToDOM(savedReport);
+          document.getElementById("resultSection").style.display = "block";
+          unlockReportUI();
+        }
+      }
+    } catch (e) {
+      console.error("決済状態復元エラー:", e);
+    }
+  });
+})();
+</script>
+</body>
+</html>
