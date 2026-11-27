@@ -286,8 +286,8 @@
   ];
 
   const TRIGGER_STYLES = [
-    "문득 생각나서 건네는 짧은 안부 톡 한 줄",
-    "예전에 함께 좋아했던 이야기나 사진이 떠오른 가벼운 질문",
+    "문득 생각나서 건네는 짧은 안부 메시지",
+    "예전에 함께 나눴던 이야기나 사진이 떠오른 가벼운 질문",
     "오래 고민하다가 용기 내어 보내는 조심스러운 연락",
     "잘 지내는지 궁금해하다 자연스럽게 이어지는 대화",
     "서운했던 마음은 내려놓고 건네는 따뜻한 인사",
@@ -316,22 +316,22 @@
   const ACTION_PROFILES = [
     {
       stance: "먼저 연락 추천",
-      summary: "「먼저 연락 추천」 지금은 {name}님({gender})이 짧고 부담 없는 안부로 먼저 말을 꺼내는 편이 좋습니다.",
+      summary: "「먼저 연락 추천」 {timingWindow}에는 {name}님({gender})이 짧고 부담 없는 안부로 먼저 말을 꺼내는 편이 좋습니다.",
       body: "[먼저 연락 추천] 상대도 망설이며 눈치를 보고 있으니, {name}님({gender})이 먼저 가볍게 다가가는 쪽이 흐름을 빠르게 엽니다. 1) 첫 메시지는 '잘 지내? 오늘 문득 생각나서'처럼 답하기 편한 한 줄로 보내세요. 2) 상대가 조심스럽게 답하더라도 곧바로 재회 얘기를 꺼내지 말고 편한 대화부터 이어가세요. 3) 답장이 조금 늦더라도 재촉하지 말고 여유롭게 기다려 주세요."
     },
     {
       stance: "기다림 추천",
-      summary: "「기다림 추천」 지금은 {name}님({gender})이 먼저 재촉하기보다 상대가 마음을 정리하고 다가올 때까지 기다리는 편이 좋습니다.",
+      summary: "「기다림 추천」 {timingWindow}까지는 {name}님({gender})이 먼저 재촉하기보다 상대가 마음을 정리하고 다가올 때까지 기다리는 편이 좋습니다.",
       body: "[기다림 추천] 상대 마음에 아직 정리할 고민이 남아 있어, 지금 먼저 다가가면 방어심이 앞설 수 있습니다. 1) 당장은 연락을 서두르지 말고 {name}님({gender})의 일상을 챙기며 마음을 차분히 가라앉히세요. 2) 상대에게 먼저 연락이 올 때는 차갑게 밀어내기보다 따뜻하고 담담하게 받아 주세요. 3) 대화가 자연스럽게 이어질 때까지 만남을 서두르지 않는 것이 유리합니다."
     },
     {
       stance: "먼저 연락 추천",
-      summary: "「먼저 연락 추천」 마음이 다시 이어질 여지가 열리고 있으니, 부담 없는 계기를 살려 {name}님({gender})이 먼저 인사해 보세요.",
+      summary: "「먼저 연락 추천」 {timingWindow} 무렵 마음이 다시 이어질 여지가 열리니, 부담 없는 계기를 살려 먼저 인사해 보세요.",
       body: "[먼저 연락 추천] 두 사람 사이의 서먹함이 한결 누그러졌으므로, {name}님({gender})이 먼저 건네는 다정한 한마디가 좋은 시작이 됩니다. 1) 과거의 잘못이나 서운함을 꺼내기보다 지금 편하게 주고받을 수 있는 가벼운 주제로 말을 거세요. 2) {timingWindow} 중 {vibeSlot}에 맞춰 부담 없이 메시지를 보내 보세요. 3) 반응이 천천히 오더라도 조급해하지 말고 차분한 온도를 지켜 주세요."
     },
     {
       stance: "기다림 추천",
-      summary: "「기다림 추천」 지금은 먼저 연락해 마음을 재촉하기보다, {name}님({gender})의 페이스를 지키며 상대의 움직임을 기다리는 편이 안전합니다.",
+      summary: "「기다림 추천」 {timingWindow} 전후까지는 먼저 연락해 마음을 재촉하기보다, {name}님({gender})의 페이스를 지키며 상대의 움직임을 기다리는 편이 안전합니다.",
       body: "[기다림 추천] 상대방이 혼자 마음을 굳히는 시간이 필요하므로, 지금은 {name}님({gender})이 한 걸음 물러나 기다리는 편이 훨씬 좋습니다. 1) 연락하고 싶은 마음이 올라와도 길고 감정적인 메시지는 참아 주세요. 2) {timingWindow} 전후로 상대의 말투나 반응에 변화가 보일 때 자연스럽게 호흡을 맞추세요. 3) 기다리는 동안 {name}님({gender}) 스스로를 잘 돌보며 단단한 마음을 지켜 주세요."
     }
   ];
@@ -406,35 +406,50 @@
     };
   }
 
-  function getUpcomingPeriodCandidates(curMonthNum, nextMonthNum, curDayNum) {
-    const curM = curMonthNum + "월";
-    const nextM = nextMonthNum + "월";
+  function formatMonthDay(year, monthIndex0, dayOfMonth) {
+    const dt = new Date(year, monthIndex0, dayOfMonth);
+    return (dt.getMonth() + 1) + "월 " + dt.getDate() + "일";
+  }
 
-    if (curDayNum <= 10) {
+  function getUpcomingPeriodCandidates(now) {
+    const y = now.getFullYear();
+    const m0 = now.getMonth();
+    const d = now.getDate();
+    const curM = (m0 + 1) + "월";
+    const nextM = (((m0 + 1) % 12) + 1) + "월";
+
+    const w1Start = formatMonthDay(y, m0, d);
+    const w1End = formatMonthDay(y, m0, d + 6);
+    const w2Start = formatMonthDay(y, m0, d + 7);
+    const w2End = formatMonthDay(y, m0, d + 14);
+    const w3Start = formatMonthDay(y, m0, d + 15);
+    const w3End = formatMonthDay(y, m0, d + 24);
+
+    if (d <= 10) {
       return [
-        curM + " 중순 무렵",
-        curM + " 하순 전후",
-        nextM + " 초순 무렵",
-        "이번 달 마음이 한결 가라앉은 뒤",
-        "서로 숨을 고른 뒤 다가오는 때"
+        curM + " 중순(11~15일 무렵)",
+        curM + " 하순(20~25일 전후)",
+        nextM + " 첫째 주(1~7일 사이)",
+        w1Start + "~" + w1End + " 사이",
+        w2Start + "~" + w2End + " 무렵"
       ];
     }
-    if (curDayNum <= 20) {
+    if (d <= 20) {
       return [
-        curM + " 하순 무렵",
-        nextM + " 초순 무렵",
-        nextM + " 중순 전후",
-        "지금 마음이 한 차례 정리된 뒤",
-        "조용히 지켜보다 분위기가 풀리는 때"
+        curM + " 하순(21~27일 무렵)",
+        nextM + " 첫째 주(1~7일 사이)",
+        nextM + " 둘째 주(8~14일 전후)",
+        w1Start + "~" + w1End + " 사이",
+        w2Start + "~" + w2End + " 무렵"
       ];
     }
     return [
-      curM + " 말~ " + nextM + " 초순 사이",
-      nextM + " 초순 무렵",
-      nextM + " 중순 전후",
-      nextM + " 하순 무렵",
-      "계절이 바뀌며 분위기가 달라지는 때",
-      "서로 숨을 고른 뒤 다가오는 때"
+      w1Start + "~" + w1End + " (" + curM + " 말~" + nextM + " 초순)",
+      nextM + " 첫째 주~둘째 주(1~12일 무렵)",
+      nextM + " 중순(11~18일 전후)",
+      nextM + " 하순(20일 이후)",
+      w2Start + "~" + w2End + " 무렵",
+      w3Start + "~" + w3End + " 사이"
     ];
   }
 
@@ -463,10 +478,10 @@
 
     return (
       safeName + "님(" + safeGender + ")의 " + safeDdi + " · " + safeDayGanJi + " 일주(" + safeHourText +
-      ")를 보면, <span class=\"timing-highlight\">마음이 다시 움직일 시기는 " +
+      ")를 보면, <span class=\"timing-highlight\">연락이나 재회 물꼬가 트일 결정적 시기는 " +
       escapeHtml(data.timingWindow || "") + "입니다</span>. 특히 " + safeVibe + "에 " +
-      safeTrigger + "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 수 있습니다. 하루 이틀 차이에 조급해하지 마시고 " +
-      safeTiming + "에 마음이 자연스럽게 이어지는지 차분히 지켜보세요."
+      safeTrigger + "이 오가며 멈춰 있던 공기가 부드럽게 풀릴 수 있습니다. 막연히 기다리기보다 " +
+      safeTiming + " 전후로 마음의 변화를 차분히 살펴보세요."
     );
   }
 
@@ -533,7 +548,6 @@
 
     const now = new Date();
     const curMonthNum = now.getMonth() + 1;
-    const nextMonthNum = (curMonthNum % 12) + 1;
     const curDayNum = now.getDate();
 
     const ddi = DDI_NAME[yJi];
@@ -562,7 +576,7 @@
       vibeSlot: ""
     };
 
-    const upcomingPeriods = getUpcomingPeriodCandidates(curMonthNum, nextMonthNum, curDayNum);
+    const upcomingPeriods = getUpcomingPeriodCandidates(now);
     const openerIdx = (yJi + m + d + hourSeed + genderOffset + timeSeed) % PREVIEW_OPENERS.length;
     const detailIdx = (dayCycle + mJi + dJi + hourSeed + genderOffset + timeSeed) % PREVIEW_DETAILS.length;
 
@@ -590,9 +604,9 @@
     const summaryTiming = "한 줄 요약: " + timingWindow + ", " + vibeSlot + "에 " + triggerStyle + "로 이어지기 쉽습니다.";
     const detailTiming =
       name + "님(" + gender + ")의 " + ddi + " · " + dayGanJi + " 일주(" + hourText +
-      ")를 보면, 마음이 다시 움직일 시기는 " + timingWindow + "입니다. 특히 " + vibeSlot + "에 " +
-      triggerStyle + "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 수 있습니다. 하루 이틀 차이에 조급해하지 마시고 " +
-      timingWindow + "에 마음이 자연스럽게 이어지는지 차분히 지켜보세요.";
+      ")를 보면, 연락이나 재회 물꼬가 트일 결정적 시기는 " + timingWindow + "입니다. 특히 " + vibeSlot + "에 " +
+      triggerStyle + "이 오가며 멈춰 있던 공기가 부드럽게 풀릴 수 있습니다. 막연히 기다리기보다 " +
+      timingWindow + " 전후로 마음의 변화를 차분히 살펴보세요.";
 
     const actionProfile = ACTION_PROFILES[actionIdx];
     const summaryAction = "한 줄 요약: " + applyTextTemplate(actionProfile.summary, tplVars);
