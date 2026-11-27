@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>사주언니 스타일 - 재회운 정밀 분석 PG (테스트 연동)</title>
+<title>사주언니 스타일 - 재회운 정밀 분석</title>
 <!-- 토스페이먼츠 v2 결제 SDK -->
 <script src="https://js.tosspayments.com/v2/standard"></script>
 <style>
   * { box-sizing: border-box; }
-  body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background: #f3f1f5; margin: 0; padding: 20px; color: #222; }
+  body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background: #f3f1f5; margin: 0; padding: 20px; color: #222; line-height: 1.6; }
   .wrap { max-width: 540px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); overflow: hidden; }
   .header { background: linear-gradient(135deg, #2b1e38, #4a2c5e); color: #fff; padding: 26px 24px; text-align: center; }
   .header .badge { display: inline-block; background: rgba(255,255,255,0.18); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
@@ -17,18 +17,20 @@
   .section { padding: 24px; }
   .field { margin-bottom: 16px; }
   .field label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #444; }
-  .field input, .field select { width: 100%; padding: 12px; border: 1px solid #d5d0dc; border-radius: 8px; font-size: 15px; }
+  .field input, .field select { width: 100%; padding: 12px; border: 1px solid #d5d0dc; border-radius: 8px; font-size: 15px; background: #fff; }
   .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .btn-primary { width: 100%; padding: 15px; background: #5b2c83; color: #fff; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 6px; }
   .btn-primary:hover { background: #471f69; }
+  .btn-primary:disabled { background: #9e8cb0; cursor: not-allowed; }
 
   /* 결과 영역 */
   #resultSection { display: none; border-top: 8px solid #f3f1f5; }
   .meta-line { font-size: 13px; color: #5b2c83; margin: 8px 0 16px; font-weight: bold; }
 
   .preview-card { background: #faf8fc; border: 1px solid #e6dff0; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
-  .preview-card h3 { margin: 0 0 10px; font-size: 16px; color: #3b1d54; }
-  .preview-card p { margin: 0 0 10px; font-size: 14px; line-height: 1.65; color: #333; }
+  .preview-card h3 { margin: 0 0 8px; font-size: 16px; color: #3b1d54; }
+  .summary-quote { background: #f3ecf9; border-left: 4px solid #6b3fa0; padding: 10px 12px; border-radius: 6px; font-size: 13.5px; font-weight: bold; color: #34194d; margin-bottom: 12px; }
+  .preview-card p { margin: 0 0 10px; font-size: 14px; line-height: 1.72; color: #333; }
   .tag-top3 { display: inline-block; background: #ffe4e8; color: #c92a42; font-weight: bold; font-size: 12px; padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; }
 
   /* 잠금(블러) 영역 */
@@ -36,7 +38,9 @@
   .locked-content { padding: 18px; background: #fff; filter: blur(5px); user-select: none; pointer-events: none; transition: filter 0.3s ease; }
   .locked-content.unlocked { filter: none; user-select: auto; pointer-events: auto; }
   .locked-content h4 { margin: 14px 0 6px; font-size: 15px; color: #2b1e38; }
-  .locked-content p { margin: 0 0 10px; font-size: 14px; line-height: 1.7; color: #333; }
+  .locked-content h4:first-child { margin-top: 0; }
+  .locked-content .one-line-summary { font-size: 13px; font-weight: bold; color: #5b2c83; background: #faf8fc; padding: 8px 10px; border-radius: 6px; margin: 0 0 8px; }
+  .locked-content p { margin: 0 0 10px; font-size: 14px; line-height: 1.75; color: #333; }
 
   .paywall-overlay {
     position: absolute; inset: 0;
@@ -54,17 +58,31 @@
   .btn-download { flex: 1; padding: 13px; background: #2b1e38; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
   .btn-print { flex: 1; padding: 13px; background: #ece7f2; color: #2b1e38; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; }
 
-  /* 결제 모달 */
+  /* 동의 체크 및 하단 고지/사업자 정보 */
+  .consent-box { margin-top: 14px; font-size: 12px; color: #444; background: #faf8fc; padding: 10px 12px; border-radius: 8px; border: 1px solid #ece6f3; }
+  .consent-box label { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; margin: 0; }
+  .consent-box input[type="checkbox"] { margin-top: 2px; }
+
+  .notice-box { margin-top: 18px; padding: 14px; background: #f8f7fa; border-radius: 10px; font-size: 12px; color: #555; line-height: 1.65; }
+  .notice-box strong { color: #2b1e38; display: block; margin-bottom: 4px; }
+
+  .footer { background: #f7f5f9; border-top: 1px solid #e6e0ec; padding: 18px 20px; font-size: 11.5px; color: #666; line-height: 1.65; }
+  .footer-links { margin-top: 8px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .footer-links button { background: none; border: none; padding: 0; color: #5b2c83; text-decoration: underline; font-size: 11.5px; cursor: pointer; }
+
+  /* 결제 모달 & 약관 모달 */
   .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); align-items: center; justify-content: center; padding: 16px; z-index: 999; }
-  .modal { background: #fff; width: 100%; max-width: 400px; border-radius: 14px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-  .modal h3 { margin: 0 0 12px; font-size: 18px; }
+  .modal { background: #fff; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; border-radius: 14px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  .modal h3 { margin: 0 0 12px; font-size: 18px; color: #2b1e38; }
   .order-summary { background: #f8f7fa; padding: 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px; line-height: 1.6; }
   .pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
-  .pay-method { border: 1px solid #ccc; border-radius: 8px; padding: 10px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; }
+  .pay-method { border: 1px solid #ccc; border-radius: 8px; padding: 10px; text-align: center; font-size: 13px; font-weight: bold; cursor: pointer; background: #fff; }
   .pay-method.active { border-color: #5b2c83; background: #f4eef9; color: #5b2c83; }
-  .modal-actions { display: flex; gap: 8px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 14px; }
   .btn-cancel { flex: 1; padding: 12px; background: #eee; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
   .btn-confirm-pay { flex: 2; padding: 12px; background: #e63956; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 15px; }
+  .btn-confirm-pay:disabled { background: #e09aa6; cursor: not-allowed; }
+  .policy-body { font-size: 12.5px; color: #444; line-height: 1.7; white-space: pre-line; }
 </style>
 </head>
 <body>
@@ -73,18 +91,18 @@
   <div class="header">
     <div class="badge">쇼츠 특별편 · 11월~12월 재회운 정밀 진단</div>
     <h1>헤어진 그 사람, 11~12월에 다시 연락 올까?</h1>
-    <p>생년월일과 태어난 시(모름 가능)를 입력하면 내 사주 속 재회 기운을 바로 확인합니다.</p>
+    <p>생년월일과 태어난 시(모름 가능)를 입력하시면 마음의 결을 따라 재회 흐름을 읽어드립니다.</p>
   </div>
 
   <!-- 생년월일 및 태어난 시 입력 -->
   <div class="section">
     <div class="row-2">
       <div class="field">
-        <label>이름 (또는 닉네임)</label>
+        <label for="userName">이름 (또는 닉네임)</label>
         <input type="text" id="userName" placeholder="예: 김지민" value="김지민">
       </div>
       <div class="field">
-        <label>성별</label>
+        <label for="gender">성별</label>
         <select id="gender">
           <option value="F">여성</option>
           <option value="M">남성</option>
@@ -94,11 +112,11 @@
 
     <div class="row-2">
       <div class="field">
-        <label>양력 생년월일</label>
+        <label for="birthDate">양력 생년월일</label>
         <input type="date" id="birthDate" value="1993-10-14">
       </div>
       <div class="field">
-        <label>태어난 시간</label>
+        <label for="birthHour">태어난 시간</label>
         <select id="birthHour">
           <option value="unknown" selected>모름 (시간 미상)</option>
           <option value="0">자시 (23:30~01:29)</option>
@@ -129,6 +147,7 @@
     <!-- 무료 맛보기 영역 -->
     <div class="preview-card">
       <h3>[무료 맛보기] 11월~12월 재회운 핵심 흐름</h3>
+      <div class="summary-quote" id="previewSummary"></div>
       <p id="previewText"></p>
     </div>
 
@@ -136,46 +155,90 @@
     <div class="locked-wrapper">
       <div class="locked-content" id="lockedContent">
         <h4>1. 상대방의 현재 속마음과 미련 지수</h4>
+        <div class="one-line-summary" id="summaryMind"></div>
         <p id="detailMind"></p>
+
         <h4>2. 연락이 오거나 재회 물꼬가 트이는 결정적 시기</h4>
+        <div class="one-line-summary" id="summaryTiming"></div>
         <p id="detailTiming"></p>
+
         <h4>3. 먼저 연락할까, 기다릴까? 실전 행동 지침</h4>
+        <div class="one-line-summary" id="summaryAction"></div>
         <p id="detailAction"></p>
       </div>
 
       <div class="paywall-overlay" id="paywallOverlay">
         <p>결제를 하시면 상세한 풀이를 드립니다</p>
-        <span>상대방 속마음 · 연락 오는 시기 · 재회 행동 지침 전체 열람</span>
+        <span>한 줄 요약 + 감성 심층 풀이 · 연락 시기 · 다정한 행동 지침 전체 열람</span>
         <button type="button" class="btn-pay" id="openPayModalBtn">19,900원 결제하고 상세 풀이 보기</button>
       </div>
     </div>
 
     <!-- 결제 완료 후 내려받기 버튼 -->
     <div class="download-area" id="downloadArea">
-      <button type="button" class="btn-download" id="downloadBtn">상세 풀이 내려받기 (.txt)</button>
+      <button type="button" class="btn-download" id="downloadBtn">가독성 리포트 내려받기 (.txt)</button>
       <button type="button" class="btn-print" id="printBtn">인쇄 / PDF 저장</button>
     </div>
+
+    <!-- 서비스 이용 및 환불 유의사항 -->
+    <div class="notice-box">
+      <strong>이용 및 환불 안내</strong>
+      · 본 상품은 입력하신 정보를 바탕으로 사주·운세 디지털 리포트 화면 및 텍스트 다운로드를 제공하는 온라인 콘텐츠이며, 실물 배송은 진행되지 않습니다.<br>
+      · 사주 풀이는 전통 명리·데이터 기반의 참고 및 마음 돌봄 콘텐츠이며, 전문적인 의료·법률·투자 판단을 대체하지 않습니다.<br>
+      · 콘텐츠 열람/제공 전에는 취소·환불 문의가 가능하며, 맞춤형 풀이 열람·제공이 완료된 디지털 콘텐츠는 관련 법령에 따라 청약철회 및 환불이 제한될 수 있습니다. 결제 오류·이중 결제·시스템 장애 시 확인 후 신속히 환불 또는 재제공해 드립니다.
+    </div>
   </div>
+
+  <!-- 하단 사업자 정보 (Footer) -->
+  <footer class="footer">
+    <div>
+      <strong>바이트빈</strong> | 대표자: 황철우<br>
+      사업자등록번호: 371-03-04592 | 통신판매업 신고번호: 신고 준비 중<br>
+      사업장 소재지: 서울특별시 강남구 자곡로 101, 래미안강남힐즈상가 1층 101호(자곡동)<br>
+      고객문의: bytebean.contact@gmail.com | 연락처: 010-9878-9918
+    </div>
+    <div class="footer-links">
+      <button type="button" id="openTermsBtn">이용약관</button>
+      <button type="button" id="openPrivacyBtn">개인정보처리방침</button>
+    </div>
+  </footer>
 </div>
 
 <!-- 결제창 모달 -->
 <div class="modal-backdrop" id="payModal">
   <div class="modal">
-    <h3>안전 결제 (토스페이먼츠 테스트 연동)</h3>
+    <h3>안전 결제 (토스페이먼츠 연동)</h3>
     <div class="order-summary">
-      <div><strong>상품명:</strong> 11~12월 재회운 정밀 사주 풀이</div>
+      <div><strong>상품명:</strong> 11~12월 재회운 정밀 사주 풀이 (디지털 리포트)</div>
       <div><strong>결제금액:</strong> 19,900원 (VAT 포함)</div>
       <div id="modalBuyerInfo"></div>
     </div>
     <div class="pay-methods">
-      <div class="pay-method active" data-method="CARD">신용/체크카드</div>
-      <div class="pay-method" data-method="CARD">간편결제(페이)</div>
-      <div class="pay-method" data-method="TRANSFER">계좌이체</div>
-      <div class="pay-method" data-method="MOBILE_PHONE">휴대폰결제</div>
+      <button type="button" class="pay-method active" data-method="CARD" data-label="신용/체크카드">신용/체크카드</button>
+      <button type="button" class="pay-method" data-method="EASY_PAY" data-label="간편결제(페이)">간편결제(페이)</button>
+      <button type="button" class="pay-method" data-method="TRANSFER" data-label="계좌이체">계좌이체</button>
+      <button type="button" class="pay-method" data-method="MOBILE_PHONE" data-label="휴대폰결제">휴대폰결제</button>
+    </div>
+    <div class="consent-box">
+      <label>
+        <input type="checkbox" id="payConsentCheck" checked>
+        <span>디지털 콘텐츠 제공 방식 및 환불·취소 유의사항, 이용약관 및 개인정보처리방침을 확인했습니다.</span>
+      </label>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-cancel" id="closePayModalBtn">취소</button>
       <button type="button" class="btn-confirm-pay" id="confirmPayBtn">결제하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 약관/개인정보 모달 -->
+<div class="modal-backdrop" id="policyModal">
+  <div class="modal">
+    <h3 id="policyTitle">안내</h3>
+    <div class="policy-body" id="policyBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" id="closePolicyModalBtn">닫기</button>
     </div>
   </div>
 </div>
@@ -187,18 +250,22 @@
   const DDI_NAME = ["쥐띠", "소띠", "호랑이띠", "토끼띠", "용띠", "뱀띠", "말띠", "양띠", "원숭이띠", "닭띠", "개띠", "돼지띠"];
   const TOP3_DDI = ["닭띠", "개띠", "호랑이띠"];
 
-  // 토스페이먼츠 API 개별 연동 테스트 클라이언트 키
+  // TODO: PG 심사 및 실결제 전환 시 실제 클라이언트 키로 교체하세요.
   const TOSS_CLIENT_KEY = "test_ck_c19ALaObYIwu1NUiqazZx7gKQyxLT2v3Vk";
   const PAYMENT_AMOUNT = 19900;
 
-  let currentReportData = {};
+  let currentReportData = null;
   let selectedPayMethod = "CARD";
+  let selectedPayLabel = "신용/체크카드";
+  let isPaying = false;
 
   function runPreview() {
     const name = (document.getElementById("userName").value || "").trim() || "의뢰인";
+    const gender = document.getElementById("gender").value === "M" ? "남성" : "여성";
     const dateStr = document.getElementById("birthDate").value;
     const hourVal = document.getElementById("birthHour").value;
     const isHourUnknown = (hourVal === "unknown");
+
     if (!dateStr) {
       alert("생년월일을 입력해 주세요.");
       return;
@@ -232,38 +299,48 @@
     const isTop3 = TOP3_DDI.includes(ddi);
     const dayGanJi = CHEONGAN[dGan] + JIJI[dJi];
     const hourText = isHourUnknown ? "태어난 시: 모름(삼주 기준 풀이)" : "태어난 시: " + JIJI[parseInt(hourVal, 10)] + " 기준";
+    const sajuText = "연 " + CHEONGAN[yGan] + JIJI[yJi] + " · 월 " + CHEONGAN[mGan] + JIJI[mJi] + " · 일 " + dayGanJi + " (" + hourText + ")";
 
-    document.getElementById("top3BadgeArea").innerHTML = isTop3
-      ? '<div class="tag-top3">쇼츠 선정 11~12월 재회운 TOP 3 해당 (' + ddi + ')</div>'
-      : '<div class="tag-top3" style="background:#eef2ff;color:#3b5bdb;">' + ddi + ' · 일주 기운 정밀 매칭 결과</div>';
-
-    document.getElementById("userSummaryTitle").innerText = name + "님 (" + ddi + " · " + dayGanJi + " 일주) 재회운 진단";
-    document.getElementById("sajuMetaText").innerText = hourText + " · 연 " + CHEONGAN[yGan] + JIJI[yJi] + " / 월 " + CHEONGAN[mGan] + JIJI[mJi] + " / 일 " + dayGanJi;
+    const previewSummary = isTop3
+      ? "한 줄 요약: 11~12월 재회 흐름 상승 구간에 들어선 " + ddi + " 기운, 멈췄던 온기가 다시 닿을 여지가 열려 있습니다."
+      : "한 줄 요약: 늦가을과 초겨울 사이, 정리되지 않은 마음의 잔상이 다시 흔들리는 조용한 전환점이 찾아옵니다.";
 
     const previewText = isTop3
-      ? name + "님은 이번 11월~12월 재회운 상승 TOP 3에 해당하는 '" + ddi + "' 기운을 지니고 있습니다. 특히 일주(" + dayGanJi + ")의 흐름상 끊어졌던 인연의 기운이 다시 맞닿는 시기가 포착되며, 상대방 쪽에서도 과거를 되돌아보는 신호가 강하게 들어와 있습니다."
-      : name + "님은 " + ddi + "이며, 일주(" + dayGanJi + ")를 기준으로 볼 때 11월 후반에서 12월 사이 감정선이 다시 흔들리는 접점이 형성됩니다. 겉으로는 무심해 보여도 정리되지 않은 감정의 잔상이 남아 있어 타이밍이 중요합니다.";
+      ? name + "님, 그동안 마음 한편에 조용히 묻어 두셨던 그 사람과의 인연이 " + ddi + "의 11~12월 흐름 속에서 다시 숨을 고르는 시기를 맞고 있습니다. 특히 " + dayGanJi + " 일주의 결을 따라 멀어졌던 거리가 조금씩 좁혀지는 기운이 감지되며, 상대방의 마음속에서도 함께 웃었던 순간들이 문득 떠오르는 때입니다."
+      : name + "님, 겉으로는 담담하게 하루를 버텨 오셨겠지만 마음속 여운은 쉽게 지워지지 않으셨을 거예요. " + ddi + "이자 " + dayGanJi + " 일주의 흐름으로 볼 때 11월 후반부터 12월 사이 두 사람의 감정선이 다시 마주칠 수 있는 잔잔한 물결이 만들어지고 있습니다.";
 
-    const detailMind = name + "님의 일주(" + dayGanJi + ")와 상대의 인연 흐름을 대입해 보면, 상대방은 이별 직후 자존심이나 현실적인 문제로 거리를 두었으나 시간이 지나며 " + name + "님과의 편안했던 기억을 자주 떠올리는 상태입니다. 먼저 다가오고 싶어도 거절당할까 봐 망설이는 기운이 큽니다.";
-    const detailTiming = "가장 강한 연락·재회 신호는 11월 넷째 주에서 12월 둘째 주 사이에 집중됩니다. 특히 저녁 시간대(19시~23시)나 안부·일상적인 계기를 빌린 가벼운 연락 형태로 물꼬가 트일 가능성이 높습니다.";
-    const detailAction = "1) 장문의 감정 호소는 피하고 담백한 근황·안부 톤을 유지하세요. 2) 프로필이나 상태를 지나치게 어둡게 두기보다 차분하고 안정된 일상을 보여주는 것이 상대의 연락을 끌어내는 데 유리합니다. 3) 첫 연락이 왔을 때 과거 서운함을 바로 꺼내지 말고 가벼운 대화로 2~3회 호흡을 맞추는 것이 재회 성사율을 높입니다.";
+    const summaryMind = "한 줄 요약: 자존심과 망설임 뒤에 숨겨진 미련이 남아 있어, 조심스럽게 눈치를 살피는 시기입니다.";
+    const detailMind = name + "님과의 시간이 헛되지 않았다는 걸 상대도 시간이 흐를수록 더 선명하게 느끼고 있습니다. 이별 직후에는 말하지 못한 서운함이나 현실의 벽 때문에 먼저 돌아서려 했지만, 혼자만의 시간이 길어질수록 " + name + "님 곁에서 느꼈던 편안함과 온기를 자주 떠올리게 됩니다. 다만 먼저 손을 내밀었다가 거절당할까 봐 마음만 앞세운 채 주저하는 기운이 강합니다.";
 
-    document.getElementById("previewText").innerText = previewText;
-    document.getElementById("detailMind").innerText = detailMind;
-    document.getElementById("detailTiming").innerText = detailTiming;
-    document.getElementById("detailAction").innerText = detailAction;
+    const summaryTiming = "한 줄 요약: 11월 넷째 주~12월 둘째 주, 저녁 시간대의 가벼운 안부에서 신호가 시작됩니다.";
+    const detailTiming = "가장 눈여겨보셔야 할 시기는 11월 넷째 주부터 12월 둘째 주 사이입니다. 하루의 분주함이 가라앉는 저녁 19시~23시 사이, 거창한 고백이나 무거운 대화보다는 계절 변화나 일상 속 작은 계기를 빌린 짧은 안부 형태로 마음이 전해질 가능성이 높습니다. 마음이 조급해질수록 하루 이틀의 차이를 크게 느끼실 수 있으니 호흡을 길게 가져가 보세요.";
+
+    const summaryAction = "한 줄 요약: 재촉하거나 다그치기보다, 차분한 일상과 담백한 말투로 마음을 쉬게 해 주세요.";
+    const detailAction = "1) 지금 당장은 감정의 무게를 한꺼번에 실어 보내기보다, 스치듯 건넬 수 있는 담백하고 따뜻한 안부 톤을 유지해 주세요. " +
+      "2) SNS나 메신저 상태를 지나치게 흔들리는 모습으로 채우기보다, 스스로를 돌보며 단단히 서 있는 모습을 보여줄 때 상대도 한결 가벼운 마음으로 다가올 수 있습니다. " +
+      "3) 연락이 닿았을 때는 지난 상처를 바로 꺼내 따지기보다, 서로의 온도를 맞추며 천천히 대화를 이어가는 것이 두 사람의 마음을 다시 잇는 데 가장 큰 힘이 됩니다.";
 
     currentReportData = {
       name: name,
+      gender: gender,
       dateStr: dateStr,
+      hourVal: hourVal,
       ddi: ddi,
+      isTop3: isTop3,
+      dayGanJi: dayGanJi,
       hourText: hourText,
-      saju: "연 " + CHEONGAN[yGan] + JIJI[yJi] + " · 월 " + CHEONGAN[mGan] + JIJI[mJi] + " · 일 " + dayGanJi + " (" + hourText + ")",
+      saju: sajuText,
+      previewSummary: previewSummary,
       previewText: previewText,
+      summaryMind: summaryMind,
       detailMind: detailMind,
+      summaryTiming: summaryTiming,
       detailTiming: detailTiming,
+      summaryAction: summaryAction,
       detailAction: detailAction
     };
+
+    renderReportToDOM(currentReportData);
 
     try {
       sessionStorage.setItem("saju_report_data", JSON.stringify(currentReportData));
@@ -276,12 +353,39 @@
     document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function renderReportToDOM(data) {
+    document.getElementById("top3BadgeArea").innerHTML = data.isTop3
+      ? '<div class="tag-top3">쇼츠 선정 11~12월 재회운 TOP 3 해당 (' + escapeHtml(data.ddi) + ')</div>'
+      : '<div class="tag-top3" style="background:#eef2ff;color:#3b5bdb;">' + escapeHtml(data.ddi) + ' · 일주 기운 정밀 매칭 결과</div>';
+
+    document.getElementById("userSummaryTitle").innerText = data.name + "님 (" + data.ddi + " · " + data.dayGanJi + " 일주) 재회운 진단";
+    document.getElementById("sajuMetaText").innerText = data.saju;
+    document.getElementById("previewSummary").innerText = data.previewSummary;
+    document.getElementById("previewText").innerText = data.previewText;
+
+    document.getElementById("summaryMind").innerText = data.summaryMind;
+    document.getElementById("detailMind").innerText = data.detailMind;
+    document.getElementById("summaryTiming").innerText = data.summaryTiming;
+    document.getElementById("detailTiming").innerText = data.detailTiming;
+    document.getElementById("summaryAction").innerText = data.summaryAction;
+    document.getElementById("detailAction").innerText = data.detailAction;
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
   function openPayModal() {
-    if (!currentReportData.name) {
+    if (!currentReportData || !currentReportData.name) {
       alert("먼저 무료 맛보기 재회운을 조회해 주세요.");
       return;
     }
-    document.getElementById("modalBuyerInfo").innerText = "신청자: " + currentReportData.name + " (" + currentReportData.dateStr + " · " + currentReportData.hourText + ")";
+    document.getElementById("modalBuyerInfo").innerText =
+      "신청자: " + currentReportData.name + " (" + currentReportData.dateStr + " · " + currentReportData.hourText + ")";
     document.getElementById("payModal").style.display = "flex";
   }
 
@@ -295,6 +399,7 @@
     });
     el.classList.add("active");
     selectedPayMethod = el.getAttribute("data-method") || "CARD";
+    selectedPayLabel = el.getAttribute("data-label") || "신용/체크카드";
   }
 
   function buildSafeCustomerKey(rawName) {
@@ -307,22 +412,40 @@
   }
 
   async function requestTossPayment() {
+    if (isPaying) return;
+    if (!currentReportData || !currentReportData.name) {
+      alert("먼저 무료 맛보기 재회운을 조회해 주세요.");
+      return;
+    }
+    if (!document.getElementById("payConsentCheck").checked) {
+      alert("디지털 콘텐츠 제공 및 환불·이용안내 확인에 체크해 주세요.");
+      return;
+    }
     if (typeof TossPayments === "undefined") {
       alert("결제 모듈을 불러오지 못했습니다. 네트워크 상태를 확인해 주세요.");
       return;
     }
 
-    const orderId = "SAJU_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
+    isPaying = true;
+    const confirmBtn = document.getElementById("confirmPayBtn");
+    confirmBtn.disabled = true;
+    confirmBtn.innerText = "결제창 여는 중...";
+
+    const orderId = "SAJU_KO_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7);
     const customerKey = buildSafeCustomerKey(currentReportData.name);
-    const origin = (window.location.origin && window.location.origin !== "null")
-      ? window.location.origin
-      : "http://localhost:3000";
+    const baseDir = window.location.pathname.replace(/[^/]*$/, "");
+    const baseOriginUrl = (window.location.origin && window.location.origin !== "null")
+      ? (window.location.origin + baseDir)
+      : "https://bestktnet-art.github.io/saju-pg/";
 
     try {
+      sessionStorage.setItem("saju_report_data", JSON.stringify(currentReportData));
       sessionStorage.setItem("saju_pending_order", JSON.stringify({
         orderId: orderId,
         amount: PAYMENT_AMOUNT,
-        buyerName: currentReportData.name
+        methodLabel: selectedPayLabel,
+        buyerName: currentReportData.name,
+        createdAt: Date.now()
       }));
     } catch (e) {}
 
@@ -338,16 +461,20 @@
         },
         orderId: orderId,
         orderName: "11~12월 재회운 정밀 사주 풀이",
-        successUrl: "https://bestktnet-art.github.io/saju-pg/success.html",
-        failUrl: origin + "/fail.html",
+        successUrl: baseOriginUrl + "success.html",
+        failUrl: baseOriginUrl + "fail.html",
         customerName: currentReportData.name || "의뢰인"
       });
     } catch (error) {
+      isPaying = false;
+      confirmBtn.disabled = false;
+      confirmBtn.innerText = "결제하기";
+
       if (error && (error.code === "USER_CANCEL" || error.code === "PAY_PROCESS_CANCELED")) {
-        alert("결제를 취소하셨습니다.");
+        alert("결제가 취소되었습니다. 언제든 다시 시도하실 수 있어요.");
       } else {
-        const msg = (error && error.message) ? error.message : "처리 중 오류가 발생했습니다";
-        alert("결제 창 호출 중 오류가 발생했습니다: " + msg);
+        const msg = (error && error.message) ? error.message : "처리 중 오류가 발생했습니다.";
+        alert("결제 진행 중 문제가 발생했습니다: " + msg);
       }
     }
   }
@@ -359,30 +486,91 @@
   }
 
   function downloadReport() {
+    if (!currentReportData) return;
+
+    const line = "============================================================";
+    const subLine = "------------------------------------------------------------";
+
     const text = [
-      "[11월~12월 재회운 정밀 사주 풀이 리포트]",
-      "성함: " + currentReportData.name + " (" + currentReportData.ddi + ")",
-      "생년월일: " + currentReportData.dateStr,
-      "명식정보: " + currentReportData.saju,
-      "----------------------------------------",
-      "[핵심 흐름 요약]",
-      currentReportData.previewText,
+      line,
+      "  [11월~12월 재회운 정밀 사주 풀이 리포트]",
+      "  바이트빈 · 감성 심층 리포트",
+      line,
       "",
-      "1. 상대방의 현재 속마음과 미련 지수",
-      currentReportData.detailMind,
+      "■ 의뢰인 기본 정보",
+      "  · 성함(닉네임) : " + currentReportData.name + " (" + currentReportData.gender + ")",
+      "  · 띠 / 일주    : " + currentReportData.ddi + " / " + currentReportData.dayGanJi + " 일주",
+      "  · 양력 생년월일 : " + currentReportData.dateStr,
+      "  · 명식 정보    : " + currentReportData.saju,
       "",
-      "2. 연락이 오거나 재회 물꼬가 트이는 결정적 시기",
-      currentReportData.detailTiming,
+      subLine,
+      "■ [핵심 요약] 11월~12월 재회운 흐름",
+      subLine,
+      "  ▶ " + currentReportData.previewSummary,
       "",
-      "3. 실전 행동 지침",
-      currentReportData.detailAction
+      "  " + currentReportData.previewText,
+      "",
+      subLine,
+      "■ 1. 상대방의 현재 속마음과 미련 지수",
+      subLine,
+      "  ▶ " + currentReportData.summaryMind,
+      "",
+      "  " + currentReportData.detailMind,
+      "",
+      subLine,
+      "■ 2. 연락이 오거나 재회 물꼬가 트이는 결정적 시기",
+      subLine,
+      "  ▶ " + currentReportData.summaryTiming,
+      "",
+      "  " + currentReportData.detailTiming,
+      "",
+      subLine,
+      "■ 3. 먼저 연락할까, 기다릴까? 실전 행동 지침",
+      subLine,
+      "  ▶ " + currentReportData.summaryAction,
+      "",
+      "  " + currentReportData.detailAction,
+      "",
+      line,
+      "  ※ 본 리포트는 전통 명리·데이터 기반 참고 및 마음 돌봄 콘텐츠입니다.",
+      "  ※ 문의: 바이트빈 | bytebean.contact@gmail.com | 010-9878-9918",
+      line
     ].join("\n");
 
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = (currentReportData.name || "의뢰인") + "_재회운_상세풀이.txt";
+    a.href = url;
+    a.download = (currentReportData.name || "의뢰인") + "_11-12월_재회운_상세풀이.txt";
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function openPolicyModal(type) {
+    const titleEl = document.getElementById("policyTitle");
+    const bodyEl = document.getElementById("policyBody");
+    if (type === "terms") {
+      titleEl.innerText = "이용약관 (바이트빈)";
+      bodyEl.innerText =
+        "제1조 (목적)\n본 약관은 바이트빈(이하 '회사')이 제공하는 온라인 사주·운세 디지털 리포트 서비스의 이용 조건 및 절차를 규정합니다.\n\n" +
+        "제2조 (서비스 제공)\n1. 입력하신 생년월일 및 선택 정보를 바탕으로 사주 분석 및 재회운 풀이 콘텐츠를 웹 화면과 다운로드 형태로 제공합니다.\n2. 사주 풀이는 전통 명리·데이터 기반 참고 정보이며 전문적인 의료·법률·투자 판단을 대체하지 않습니다.\n\n" +
+        "제3조 (결제 및 환불)\n1. 콘텐츠 열람·제공 전에는 취소/환불 문의가 가능하며, 열람·제공이 완료된 디지털 콘텐츠는 관련 법령에 따라 청약철회 및 환불이 제한될 수 있습니다.\n2. 이중 결제, 결제 오류, 시스템 장애 등 회사 귀책 사유 시 확인 후 환불 또는 재제공합니다.\n\n" +
+        "제4조 (권리 및 문의)\n콘텐츠 및 화면 구성의 무단 복제·재배포를 금합니다. 문의: bytebean.contact@gmail.com / 010-9878-9918";
+    } else {
+      titleEl.innerText = "개인정보처리방침 (바이트빈)";
+      bodyEl.innerText =
+        "1. 수집 항목\n사주 풀이 제공, 결제 처리 및 고객 문의 응대를 위해 이름(닉네임), 성별, 생년월일, 출생시간(선택), 결제 주문 정보, 문의 시 연락처·이메일을 수집할 수 있습니다.\n\n" +
+        "2. 이용 목적\n사주·운세 리포트 생성 및 제공, 결제 확인·환불 대응, 고객 문의 응대 및 서비스 안정화.\n\n" +
+        "3. 보유 및 이용 기간\n서비스 제공 목적 달성 시 또는 관계 법령에 따른 거래 기록 보관 기간 동안 관리하며, 파기 대상 정보는 안전하게 삭제합니다.\n\n" +
+        "4. 문의처\n바이트빈 개인정보 문의: bytebean.contact@gmail.com / 010-9878-9918";
+    }
+    document.getElementById("policyModal").style.display = "flex";
+  }
+
+  function closePolicyModal() {
+    document.getElementById("policyModal").style.display = "none";
   }
 
   window.addEventListener("DOMContentLoaded", function () {
@@ -392,6 +580,9 @@
     document.getElementById("confirmPayBtn").addEventListener("click", requestTossPayment);
     document.getElementById("downloadBtn").addEventListener("click", downloadReport);
     document.getElementById("printBtn").addEventListener("click", function () { window.print(); });
+    document.getElementById("openTermsBtn").addEventListener("click", function () { openPolicyModal("terms"); });
+    document.getElementById("openPrivacyBtn").addEventListener("click", function () { openPolicyModal("privacy"); });
+    document.getElementById("closePolicyModalBtn").addEventListener("click", closePolicyModal);
 
     document.querySelectorAll(".pay-method").forEach(function (el) {
       el.addEventListener("click", function () {
@@ -406,16 +597,20 @@
       if (verifiedPaymentRaw && savedReportRaw) {
         const verifiedPayment = JSON.parse(verifiedPaymentRaw);
         const savedReport = JSON.parse(savedReportRaw);
-        if (verifiedPayment.ok && Number(verifiedPayment.amount) === PAYMENT_AMOUNT) {
+
+        if (
+          verifiedPayment &&
+          verifiedPayment.ok === true &&
+          Number(verifiedPayment.amount) === PAYMENT_AMOUNT &&
+          savedReport &&
+          savedReport.name
+        ) {
           currentReportData = savedReport;
-          document.getElementById("userName").value = savedReport.name || "";
-          document.getElementById("birthDate").value = savedReport.dateStr || "";
-          document.getElementById("userSummaryTitle").innerText = savedReport.name + "님 (" + savedReport.ddi + ") 재회운 진단";
-          document.getElementById("sajuMetaText").innerText = savedReport.saju;
-          document.getElementById("previewText").innerText = savedReport.previewText;
-          document.getElementById("detailMind").innerText = savedReport.detailMind;
-          document.getElementById("detailTiming").innerText = savedReport.detailTiming;
-          document.getElementById("detailAction").innerText = savedReport.detailAction;
+          if (savedReport.name) document.getElementById("userName").value = savedReport.name;
+          if (savedReport.dateStr) document.getElementById("birthDate").value = savedReport.dateStr;
+          if (savedReport.hourVal) document.getElementById("birthHour").value = savedReport.hourVal;
+
+          renderReportToDOM(savedReport);
           document.getElementById("resultSection").style.display = "block";
           unlockReportUI();
         }
