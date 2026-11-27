@@ -31,7 +31,7 @@
   .preview-card { background: #faf8fc; border: 1px solid #e6dff0; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
   .preview-card h3 { margin: 0 0 10px; font-size: 16px; color: #3b1d54; }
   .preview-card p { margin: 0; font-size: 14px; line-height: 1.75; color: #333; }
-  .tag-top3 { display: inline-block; background: #ffe4e8; color: #c92a42; font-weight: bold; font-size: 12px; padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; }
+  .tag-match { display: inline-block; background: #eef2ff; color: #3b5bdb; font-weight: bold; font-size: 12px; padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; }
 
   /* 잠금(블러) 영역 */
   .locked-wrapper { position: relative; border-radius: 12px; overflow: hidden; border: 1px solid #e6dff0; }
@@ -153,7 +153,7 @@
 
   <!-- 결과 및 맛보기 + 잠금 -->
   <div class="section" id="resultSection">
-    <div id="top3BadgeArea"></div>
+    <div id="matchBadgeArea"></div>
     <strong id="userSummaryTitle" style="font-size:17px;"></strong>
     <div class="meta-line" id="sajuMetaText"></div>
 
@@ -260,7 +260,6 @@
   const CHEONGAN = ["갑(甲)", "을(乙)", "병(丙)", "정(丁)", "무(戊)", "기(己)", "경(庚)", "신(辛)", "임(壬)", "계(癸)"];
   const JIJI = ["자(子)", "축(丑)", "인(寅)", "묘(卯)", "진(辰)", "사(巳)", "오(午)", "미(未)", "신(申)", "유(酉)", "술(戌)", "해(亥)"];
   const DDI_NAME = ["쥐띠", "소띠", "호랑이띠", "토끼띠", "용띠", "뱀띠", "말띠", "양띠", "원숭이띠", "닭띠", "개띠", "돼지띠"];
-  const TOP3_DDI = ["닭띠", "개띠", "호랑이띠"];
 
   const PREVIEW_OPENERS = [
     "{name}님({gender}), {ddi}·{dayGanJi} 일주({hourShort})로 보면 두 사람 사이에 남아 있던 마음이 아직 완전히 식지 않고 다시 흔들리고 있습니다.",
@@ -551,7 +550,6 @@
     const curDayNum = now.getDate();
 
     const ddi = DDI_NAME[yJi];
-    const isTop3 = TOP3_DDI.includes(ddi);
     const dayGanJi = CHEONGAN[dGan] + JIJI[dJi];
     const hourNum = isHourUnknown ? 6 : parseInt(hourVal, 10);
     const hourJiName = JIJI[((hourNum % 12) + 12) % 12];
@@ -622,7 +620,6 @@
       birthDisplay: birthDisplay,
       hourVal: hourVal,
       ddi: ddi,
-      isTop3: isTop3,
       dayGanJi: dayGanJi,
       hourText: hourText,
       saju: sajuText,
@@ -666,9 +663,8 @@
       calendarSelect.value = data.calendarType;
     }
 
-    document.getElementById("top3BadgeArea").innerHTML = data.isTop3
-      ? '<div class="tag-top3">재회운 상승 흐름 TOP 3 해당 (' + escapeHtml(data.ddi) + ')</div>'
-      : '<div class="tag-top3" style="background:#eef2ff;color:#3b5bdb;">' + escapeHtml(data.ddi) + ' · 일주 기운 정밀 매칭 결과</div>';
+    document.getElementById("matchBadgeArea").innerHTML =
+      '<div class="tag-match">' + escapeHtml(data.ddi) + ' · 일주 기운 정밀 매칭 결과</div>';
 
     document.getElementById("userSummaryTitle").innerText = data.name + "님 (" + genderLabel + " · " + data.ddi + " · " + data.dayGanJi + " 일주) 재회운 진단";
     document.getElementById("sajuMetaText").innerText = data.saju;
