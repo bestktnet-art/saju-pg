@@ -261,17 +261,6 @@
     "{name}님({gender})의 {ddi} 흐름은 서두르기보다 결을 읽는 데 강점이 있으며, 상대방의 마음속에서도 {dayGanJi} 일주 특유의 인상이 지워지지 않고 남아 있습니다."
   ];
 
-  const PERIOD_PHRASES = [
-    "{curMonth} 중순 무렵",
-    "{curMonth} 하순으로 넘어가는 시점",
-    "{nextMonth} 초순 흐름",
-    "{nextMonth} 중순 전후",
-    "현재 기운이 한 차례 정리된 뒤의 전환기",
-    "계절의 기운이 다음 결로 넘어가는 시점",
-    "서로 숨 고르기를 마친 뒤 다가오는 국면",
-    "조용한 관망 끝에 분위기가 풀리는 때"
-  ];
-
   const VIBE_SLOTS = [
     "하루의 일과가 정리되며 마음이 차분해지는 시간대",
     "혼자만의 시간이 길어지며 생각이 깊어지는 때",
@@ -333,6 +322,38 @@
   let selectedPayLabel = "신용/체크카드";
   let isPaying = false;
 
+  function getUpcomingPeriodCandidates(curMonthNum, nextMonthNum, curDayNum) {
+    const curM = curMonthNum + "월";
+    const nextM = nextMonthNum + "월";
+
+    if (curDayNum <= 10) {
+      return [
+        curM + " 중순 무렵",
+        curM + " 하순 전후",
+        nextM + " 초순 흐름",
+        "이번 달 기운이 한 차례 정리된 뒤의 전환기",
+        "서로 숨 고르기를 마친 뒤 다가오는 국면"
+      ];
+    }
+    if (curDayNum <= 20) {
+      return [
+        curM + " 하순 무렵",
+        nextM + " 초순 흐름",
+        nextM + " 중순 전후",
+        "현재 기운이 한 차례 정리된 뒤의 전환기",
+        "조용한 관망 끝에 분위기가 풀리는 때"
+      ];
+    }
+    return [
+      curM + " 말~ " + nextM + " 초순 흐름",
+      nextM + " 초순 무렵",
+      nextM + " 중순 전후",
+      nextM + " 하순 흐름",
+      "계절의 기운이 다음 결로 넘어가는 시점",
+      "서로 숨 고르기를 마친 뒤 다가오는 국면"
+    ];
+  }
+
   function applyTextTemplate(tpl, vars) {
     return String(tpl || "")
       .replace(/\{name\}/g, vars.name || "")
@@ -341,9 +362,7 @@
       .replace(/\{dayGanJi\}/g, vars.dayGanJi || "")
       .replace(/\{hourShort\}/g, vars.hourShort || "")
       .replace(/\{mJi\}/g, vars.mJi || "")
-      .replace(/\{dJi\}/g, vars.dJi || "")
-      .replace(/\{curMonth\}/g, vars.curMonth || "")
-      .replace(/\{nextMonth\}/g, vars.nextMonth || "");
+      .replace(/\{dJi\}/g, vars.dJi || "");
   }
 
   function buildHighlightedTimingHtml(data) {
@@ -359,8 +378,9 @@
     return (
       safeName + "님(" + safeGender + ")의 명식(" + safeDdi + " · " + safeDayGanJi + " 일주, " + safeHourText +
       ")과 현재 흐름을 함께 보면, <span class=\"timing-highlight\">눈여겨보셔야 할 결정적 시기는 " +
-      escapeHtml(data.timingWindow || "") + "입니다</span> (" + safeTiming + "). 특히 " + safeVibe + "에 " +
-      safeTrigger + "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 가능성이 높습니다. 하루 이틀의 속도 차이에 조급해하기보다 흐름이 무르익는 결을 차분히 지켜보시는 것이 좋습니다."
+      escapeHtml(data.timingWindow || "") + "입니다</span>. 특히 " + safeVibe + "에 " +
+      safeTrigger + "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 가능성이 높습니다. 하루 이틀의 속도 차이에 조급해하기보다 " +
+      safeTiming + "의 흐름이 무르익는 결을 차분히 지켜보시는 것이 좋습니다."
     );
   }
 
@@ -426,21 +446,20 @@
       dayGanJi: dayGanJi,
       hourShort: hourShort,
       mJi: JIJI[mJi],
-      dJi: JIJI[dJi],
-      curMonth: curMonthNum + "월",
-      nextMonth: nextMonthNum + "월"
+      dJi: JIJI[dJi]
     };
 
+    const upcomingPeriods = getUpcomingPeriodCandidates(curMonthNum, nextMonthNum, curDayNum);
     const openerIdx = (yJi + m + d + hourSeed + genderOffset + timeSeed) % PREVIEW_OPENERS.length;
     const detailIdx = (dayCycle + mJi + dJi + hourSeed + genderOffset + timeSeed) % PREVIEW_DETAILS.length;
 
-    const periodIdx = (yJi * 3 + m * 2 + d + hourSeed * 2 + genderOffset + timeSeed) % PERIOD_PHRASES.length;
+    const periodIdx = (yJi * 3 + m * 2 + d + hourSeed * 2 + genderOffset + timeSeed) % upcomingPeriods.length;
     const slotIdx = (dayCycle + mJi + hourSeed * 3 + genderOffset + curDayNum) % VIBE_SLOTS.length;
     const triggerIdx = (mJi * 2 + dJi + hourSeed + genderOffset + timeSeed) % TRIGGER_STYLES.length;
     const mindIdx = (dayCycle + yJi + genderOffset + curMonthNum) % MIND_PROFILES.length;
     const actionIdx = (mJi + hourSeed + genderOffset + curDayNum) % ACTION_PROFILES.length;
 
-    const timingWindow = applyTextTemplate(PERIOD_PHRASES[periodIdx], tplVars);
+    const timingWindow = upcomingPeriods[periodIdx];
     const vibeSlot = VIBE_SLOTS[slotIdx];
     const triggerStyle = TRIGGER_STYLES[triggerIdx];
 
@@ -454,9 +473,10 @@
 
     const summaryTiming = "한 줄 요약: " + timingWindow + ", " + vibeSlot + "에 " + triggerStyle + "로 물꼬가 트이기 쉽습니다.";
     const detailTiming =
-      name + "님(" + gender + ")의 명식(" + ddi + " · " + dayGanJi + " 일주, " + hourText + ")과 현재 흐름을 함께 보면, 눈여겨보셔야 할 시기는 " +
+      name + "님(" + gender + ")의 명식(" + ddi + " · " + dayGanJi + " 일주, " + hourText + ")과 현재 흐름을 함께 보면, 눈여겨보셔야 할 결정적 시기는 " +
       timingWindow + "입니다. 특히 " + vibeSlot + "에 " + triggerStyle +
-      "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 가능성이 높습니다. 하루 이틀의 속도 차이에 조급해하기보다 흐름이 무르익는 결을 차분히 지켜보시는 것이 좋습니다.";
+      "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 가능성이 높습니다. 하루 이틀의 속도 차이에 조급해하기보다 " +
+      timingWindow + "의 흐름이 무르익는 결을 차분히 지켜보시는 것이 좋습니다.";
 
     const actionProfile = ACTION_PROFILES[actionIdx];
     const summaryAction = "한 줄 요약: " + actionProfile.summary;
