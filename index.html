@@ -159,7 +159,7 @@
 
     <!-- 무료 맛보기 영역 -->
     <div class="preview-card">
-      <h3>[무료 맛보기] 재회운 핵심 흐름</h3>
+      <h3 id="coreFlowTitle">[무료 맛보기] 재회운 핵심 흐름</h3>
       <p id="previewText"></p>
     </div>
 
@@ -300,7 +300,7 @@
       body: "상대방은 아무렇지 않은 척 지내려 하지만, 혼자 있는 시간이 길어질수록 {name}님({gender})과 나눴던 대화와 온기가 자꾸 떠오릅니다. 지금 연락해도 될지 혼자 재어 보면서도 쉽게 용기를 내지 못하는 마음이 큽니다."
     },
     {
-      summary: "자존심과 현실적인 고민 때문에 선뜻 다가서지 못하지만, 마음 속에는 아쉬움과 미련이 남아 있습니다.",
+      summary: "자존심과 현실적인 고민 때문에 선뜻 먼저 다가서지 못하지만, 마음 속에는 아쉬움과 미련이 남아 있습니다.",
       body: "헤어질 때는 감정이 앞서거나 표현을 서툴게 했던 부분이 있어, 시간이 갈수록 {name}님({gender})의 진심이 더 크게 느껴집니다. 거절당할까 봐 망설이는 마음이 앞서므로, 다그치기보다 마음을 열 시간을 주는 것이 좋습니다."
     },
     {
@@ -347,6 +347,12 @@
   let isReportUnlocked = false;
   let paidCustomerSignature = "";
 
+  function syncCoreFlowHeading(unlocked) {
+    const heading = document.getElementById("coreFlowTitle");
+    if (!heading) return;
+    heading.innerText = unlocked ? "재회운 핵심 흐름" : "[무료 맛보기] 재회운 핵심 흐름";
+  }
+
   function normalizeIdentitySignature(name, genderCode, calendarType, dateStr) {
     const cleanName = String(name || "").trim().replace(/\s+/g, " ");
     const cleanGender = genderCode === "M" ? "M" : "F";
@@ -377,6 +383,7 @@
     document.getElementById("downloadArea").style.display = "none";
     document.getElementById("resultSection").style.display = "none";
     setActionButtonLabel(false);
+    syncCoreFlowHeading(false);
 
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -627,6 +634,7 @@
     document.getElementById("paywallOverlay").style.display = "flex";
     document.getElementById("downloadArea").style.display = "none";
     setActionButtonLabel(false);
+    syncCoreFlowHeading(false);
 
     document.getElementById("resultSection").style.display = "block";
     document.getElementById("resultSection").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -658,6 +666,7 @@
     document.getElementById("detailTiming").innerHTML = buildHighlightedTimingHtml(data);
     document.getElementById("summaryAction").innerText = data.summaryAction;
     document.getElementById("detailAction").innerText = data.detailAction;
+    syncCoreFlowHeading(isReportUnlocked);
   }
 
   function escapeHtml(str) {
@@ -793,6 +802,7 @@
     document.getElementById("paywallOverlay").style.display = "none";
     document.getElementById("downloadArea").style.display = "flex";
     setActionButtonLabel(true);
+    syncCoreFlowHeading(true);
   }
 
   function wrapReportLines(text, maxChars) {
@@ -829,6 +839,7 @@
 
     const genderLabel = currentReportData.gender || (currentReportData.genderCode === "M" ? "남성" : "여성");
     const birthInfo = currentReportData.birthDisplay || currentReportData.dateStr;
+    const flowHeading = isReportUnlocked ? "재회운 핵심 흐름" : "[무료 맛보기] 재회운 핵심 흐름";
     const line = "==================================================";
     const subLine = "--------------------------------------------------";
 
@@ -845,7 +856,7 @@
       "  · 명식 정보    : " + currentReportData.saju,
       "",
       subLine,
-      "■ [핵심 흐름] 재회운 맛보기",
+      "■ " + flowHeading,
       subLine,
       currentReportData.previewText,
       "",
@@ -915,6 +926,7 @@
 
   window.addEventListener("DOMContentLoaded", function () {
     setActionButtonLabel(false);
+    syncCoreFlowHeading(false);
     document.getElementById("previewBtn").addEventListener("click", runPreview);
     document.getElementById("openPayModalBtn").addEventListener("click", openPayModal);
     document.getElementById("closePayModalBtn").addEventListener("click", closePayModal);
