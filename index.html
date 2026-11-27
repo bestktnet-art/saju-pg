@@ -39,6 +39,7 @@
   .locked-content h4:first-child { margin-top: 0; }
   .locked-content .one-line-summary { font-size: 13px; font-weight: bold; color: #5b2c83; background: #faf8fc; padding: 8px 10px; border-radius: 6px; margin: 0 0 8px; }
   .locked-content p { margin: 0 0 10px; font-size: 14px; line-height: 1.75; color: #333; }
+  .timing-highlight { font-weight: 800; text-decoration: underline; text-underline-offset: 4px; color: #3b1d54; background: #f4eef9; padding: 1px 4px; border-radius: 4px; }
 
   .paywall-overlay {
     position: absolute; inset: 0;
@@ -260,7 +261,6 @@
     "{name}님({gender})의 {ddi} 흐름은 서두르기보다 결을 읽는 데 강점이 있으며, 상대방의 마음속에서도 {dayGanJi} 일주 특유의 인상이 지워지지 않고 남아 있습니다."
   ];
 
-  // 특정 월이나 시계 시각을 고정하지 않고, 조회 시점(현재 연·월·일)과 사주 조합으로 흐름을 생성
   const PERIOD_PHRASES = [
     "{curMonth} 중순 무렵",
     "{curMonth} 하순으로 넘어가는 시점",
@@ -344,6 +344,24 @@
       .replace(/\{dJi\}/g, vars.dJi || "")
       .replace(/\{curMonth\}/g, vars.curMonth || "")
       .replace(/\{nextMonth\}/g, vars.nextMonth || "");
+  }
+
+  function buildHighlightedTimingHtml(data) {
+    const safeName = escapeHtml(data.name || "의뢰인");
+    const safeGender = escapeHtml(data.gender || "여성");
+    const safeDdi = escapeHtml(data.ddi || "");
+    const safeDayGanJi = escapeHtml(data.dayGanJi || "");
+    const safeHourText = escapeHtml(data.hourText || "");
+    const safeTiming = '<span class="timing-highlight">' + escapeHtml(data.timingWindow || "") + '</span>';
+    const safeVibe = escapeHtml(data.vibeSlot || "");
+    const safeTrigger = escapeHtml(data.triggerStyle || "");
+
+    return (
+      safeName + "님(" + safeGender + ")의 명식(" + safeDdi + " · " + safeDayGanJi + " 일주, " + safeHourText +
+      ")과 현재 흐름을 함께 보면, <span class=\"timing-highlight\">눈여겨보셔야 할 결정적 시기는 " +
+      escapeHtml(data.timingWindow || "") + "입니다</span> (" + safeTiming + "). 특히 " + safeVibe + "에 " +
+      safeTrigger + "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 가능성이 높습니다. 하루 이틀의 속도 차이에 조급해하기보다 흐름이 무르익는 결을 차분히 지켜보시는 것이 좋습니다."
+    );
   }
 
   function runPreview() {
@@ -457,6 +475,7 @@
       saju: sajuText,
       timingWindow: timingWindow,
       vibeSlot: vibeSlot,
+      triggerStyle: triggerStyle,
       previewText: previewText,
       summaryMind: summaryMind,
       detailMind: detailMind,
@@ -498,7 +517,7 @@
     document.getElementById("summaryMind").innerText = data.summaryMind;
     document.getElementById("detailMind").innerText = data.detailMind;
     document.getElementById("summaryTiming").innerText = data.summaryTiming;
-    document.getElementById("detailTiming").innerText = data.detailTiming;
+    document.getElementById("detailTiming").innerHTML = buildHighlightedTimingHtml(data);
     document.getElementById("summaryAction").innerText = data.summaryAction;
     document.getElementById("detailAction").innerText = data.detailAction;
   }
