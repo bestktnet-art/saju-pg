@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>決済完了の確認 - 復縁運・四柱推命 詳細鑑定</title>
+<title>결제 완료 확인 - 재회운 정밀 사주 풀이</title>
 <style>
-  body { font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Meiryo', sans-serif; background: #f3f1f5; margin: 0; padding: 32px 16px; color: #222; }
+  body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background: #f3f1f5; margin: 0; padding: 32px 16px; color: #222; }
   .box { max-width: 460px; margin: 0 auto; background: #fff; border-radius: 14px; padding: 28px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); text-align: center; }
   h1 { margin: 0 0 10px; font-size: 20px; color: #2b1e38; }
   p { margin: 0 0 18px; font-size: 14px; line-height: 1.65; color: #555; }
@@ -15,13 +15,13 @@
 </head>
 <body>
 <div class="box">
-  <h1 id="statusTitle">決済内容を確認しています...</h1>
-  <p id="statusDesc">しばらくお待ちください。確認が完了すると詳細鑑定画面へ移動します。</p>
-  <button type="button" class="btn" id="goBackBtn" style="display:none;">詳細鑑定画面へ進む</button>
+  <h1 id="statusTitle">결제 내역을 확인하는 중입니다...</h1>
+  <p id="statusDesc">잠시만 기다려 주세요. 확인이 끝나면 상세 풀이 화면으로 이동합니다.</p>
+  <button type="button" class="btn" id="goBackBtn" style="display:none;">상세 풀이 화면으로 이동</button>
 </div>
 <script>
 (function () {
-  const EXPECTED_AMOUNT = 2000;
+  const EXPECTED_AMOUNT = 19900;
   const params = new URLSearchParams(window.location.search);
   const amount = Number(params.get("amount") || "0");
   const orderId = (params.get("orderId") || "").trim();
@@ -33,7 +33,7 @@
 
   let pendingOrder = null;
   try {
-    const raw = sessionStorage.getItem("saju_ja_pending_order");
+    const raw = sessionStorage.getItem("saju_pending_order");
     if (raw) pendingOrder = JSON.parse(raw);
   } catch (e) {}
 
@@ -45,26 +45,26 @@
   });
 
   if (!isValidOrder || !isValidAmount) {
-    titleEl.innerText = "決済情報をご確認ください";
+    titleEl.innerText = "결제 정보를 다시 확인해 주세요";
     titleEl.classList.add("err");
-    descEl.innerText = "ご注文情報または決済金額（2,000円）が一致しません。元の画面へ戻って再度ご確認ください。";
+    descEl.innerText = "결제 주문 정보나 금액이 일치하지 않습니다. 원래 화면으로 돌아가 다시 확인해 주세요.";
     btn.style.display = "inline-block";
     return;
   }
 
   try {
-    sessionStorage.setItem("saju_ja_verified_payment", JSON.stringify({
+    sessionStorage.setItem("saju_verified_payment", JSON.stringify({
       ok: true,
       amount: amount,
       orderId: orderId,
       paymentKey: paymentKey || "VERIFIED_FLOW",
       verifiedAt: Date.now()
     }));
-    sessionStorage.removeItem("saju_ja_pending_order");
+    sessionStorage.removeItem("saju_pending_order");
   } catch (e) {}
 
-  titleEl.innerText = "決済が完了しました";
-  descEl.innerText = "詳細鑑定とレポート保存の準備が整いました。まもなく鑑定画面へ移動します。";
+  titleEl.innerText = "결제가 완료되었습니다";
+  descEl.innerText = "상세 사주 풀이와 리포트 다운로드가 준비되었습니다. 잠시 후 풀이 화면으로 이동합니다.";
   btn.style.display = "inline-block";
 
   setTimeout(function () {
