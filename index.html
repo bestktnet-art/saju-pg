@@ -11,7 +11,6 @@
   body { font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; background: #f3f1f5; margin: 0; padding: 20px; color: #222; line-height: 1.6; }
   .wrap { max-width: 540px; margin: 0 auto; background: #fff; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); overflow: hidden; }
   .header { background: linear-gradient(135deg, #2b1e38, #4a2c5e); color: #fff; padding: 26px 24px; text-align: center; }
-  .header .badge { display: inline-block; background: rgba(255,255,255,0.18); padding: 4px 12px; border-radius: 20px; font-size: 12px; margin-bottom: 10px; }
   .header h1 { margin: 0 0 8px; font-size: 21px; line-height: 1.4; }
   .header p { margin: 0; font-size: 13px; color: #e0d6eb; }
   .section { padding: 24px; }
@@ -88,7 +87,6 @@
 
 <div class="wrap">
   <div class="header">
-    <div class="badge">쇼츠 특별편 · 11월~12월 재회운 정밀 진단</div>
     <h1>헤어진 그 사람, 다시 연락 올까?</h1>
     <p>생년월일과 태어난 시(모름 가능)를 입력하시면 마음의 결을 따라 재회 흐름을 읽어드립니다.</p>
   </div>
@@ -207,7 +205,7 @@
   <div class="modal">
     <h3>안전 결제 (토스페이먼츠 연동)</h3>
     <div class="order-summary">
-      <div><strong>상품명:</strong> 11~12월 재회운 정밀 사주 풀이 (디지털 리포트)</div>
+      <div><strong>상품명:</strong> 재회운 정밀 사주 풀이 (디지털 리포트)</div>
       <div><strong>결제금액:</strong> 19,900원 (VAT 포함)</div>
       <div id="modalBuyerInfo"></div>
     </div>
@@ -251,7 +249,7 @@
   const PREVIEW_OPENERS = [
     "{name}님({gender})의 {ddi}·{dayGanJi} 일주({hourShort}) 명식에서는 두 사람 사이에 남아 있던 감정선이 {mJi}·{dJi} 기운과 맞물리며 잔잔한 파동을 만들고 있습니다. 구체적인 움직임은 상세 풀이에서 확인하실 수 있습니다.",
     "{name}님({gender})이 지닌 {dayGanJi} 일주와 {ddi}({hourShort})의 흐름은 현재 멈춰 있던 인연의 결을 다시 짚어 보는 국면에 놓여 있습니다. 실제 전환이 열리는 지점은 본 풀이에서 자세히 풀어드립니다.",
-    "{name}님({gender})의 사주 원국({ddi} · {dayGanJi} 일주, {hourShort})을 살펴보면 상대와의 기억이 단순한 과거를 넘어 현재 기운과 얽히는 모습이 포착됩니다. 핵심 흐름과 시기는 상세 리포트에 담았습니다.",
+    "{name}님({gender})의 사주 원국({ddi} · {dayGanJi} 일주, {hourShort})을 살펴보면 상대와의 기억이 단순한 과거를 넘어 현재 기운과 얽히는 모습이 포착됩니다. 핵심 흐름은 상세 리포트에 담았습니다.",
     "{name}님({gender})의 {ddi} 기운과 {dayGanJi} 일주({hourShort})는 감정의 진폭이 가라앉은 뒤 속내를 비추는 결을 보이고 있습니다. 어떤 식으로 온도가 달라지는지는 상세 풀이에서 확인해 보세요."
   ];
 
@@ -262,37 +260,40 @@
     "{name}님({gender})의 {ddi} 흐름은 서두르기보다 결을 읽는 데 강점이 있으며, 상대방의 마음속에서도 {dayGanJi} 일주 특유의 인상이 지워지지 않고 남아 있습니다."
   ];
 
-  const TIMING_WINDOWS = [
-    "11월 셋째 주~넷째 주",
-    "11월 넷째 주~12월 첫째 주",
-    "12월 첫째 주~둘째 주",
-    "12월 둘째 주~셋째 주",
-    "12월 중순~셋째 주",
-    "12월 셋째 주~연말 전후"
+  // 특정 월이나 시계 시각을 고정하지 않고, 조회 시점(현재 연·월·일)과 사주 조합으로 흐름을 생성
+  const PERIOD_PHRASES = [
+    "{curMonth} 중순 무렵",
+    "{curMonth} 하순으로 넘어가는 시점",
+    "{nextMonth} 초순 흐름",
+    "{nextMonth} 중순 전후",
+    "현재 기운이 한 차례 정리된 뒤의 전환기",
+    "계절의 기운이 다음 결로 넘어가는 시점",
+    "서로 숨 고르기를 마친 뒤 다가오는 국면",
+    "조용한 관망 끝에 분위기가 풀리는 때"
   ];
 
-  const TIME_SLOTS = [
-    "이른 아침 06시~08시 30분 사이",
-    "오전 09시~11시 30분 사이",
-    "낮 12시~14시 30분 사이",
-    "오후 15시~18시 사이",
-    "저녁 19시~21시 30분 사이",
-    "늦은 밤 21시 30분~23시 50분 사이"
+  const VIBE_SLOTS = [
+    "하루의 일과가 정리되며 마음이 차분해지는 시간대",
+    "혼자만의 시간이 길어지며 생각이 깊어지는 때",
+    "일상 속 숨 고르기를 하는 여유로운 순간",
+    "바쁜 움직임이 잦아들고 분위기가 가라앉는 때",
+    "주변 소음이 줄어들며 감정의 결이 또렷해지는 시간",
+    "생각이 복잡해지기보다 담담하게 돌아보게 되는 때"
   ];
 
   const TRIGGER_STYLES = [
-    "계절이 바뀌며 문득 떠오른 짧은 안부 메시지",
-    "일상 속 공통 관심사나 추억이 스친 담백한 질문",
-    "오랜 망설임 끝에 용기를 낸 조심스러운 연락",
-    "소식을 확인하다 자연스럽게 이어지는 짧은 대화",
-    "복잡한 감정을 가라앉힌 뒤 건네는 차분한 인사",
-    "주말을 앞둔 여유로운 시간대에 시작되는 가벼운 말 걸기"
+    "문득 떠오른 기억을 빌린 짧은 안부 메시지",
+    "일상 속 공통 관심사나 익숙한 장면이 스친 질문",
+    "오랜 망설임 끝에 건네는 조심스러운 말 한마디",
+    "근황을 떠올리다 자연스럽게 이어지는 대화",
+    "감정의 날을 누그러뜨린 뒤 전하는 차분한 인사",
+    "부담 없이 주고받을 수 있는 가벼운 화두"
   ];
 
   const MIND_PROFILES = [
     {
       summary: "겉으로는 무심해 보여도 마음속에 남은 여운이 쉽게 가라앉지 않아 혼자만의 시간에 생각이 많아지는 흐름입니다.",
-      body: "상대방은 지난 시간의 빈자리를 시간이 흐를수록 더 뚜렷하게 체감하고 있습니다. 당장 앞에서는 담담한 척해도 혼자 돌아서는 순간 {name}님({gender})과 나눴던 대화와 온기가 불쑥 떠오르며, 지금 연락해도 괜찮을지 혼자 재보는 기운이 강합니다."
+      body: "상대방은 지난 시간의 빈자리를 시간이 흐를수록 더 뚜렷하게 체감하고 있습니다. 당장 앞에서는 담담한 척해도 혼자 돌아서는 순간 {name}님({gender})과 나눴던 대화와 온기가 불쑥 떠오르며, 지금 다가서도 괜찮을지 혼자 재보는 기운이 강합니다."
     },
     {
       summary: "자존심과 현실적인 고민 때문에 선뜻 먼저 다가서지 못하지만, 마음 한구석에는 미련과 아쉬움이 자리 잡고 있습니다.",
@@ -304,7 +305,7 @@
     },
     {
       summary: "마음은 이미 기울어 가고 있으나 말 한마디 꺼내는 타이밍을 놓쳐 며칠씩 고민만 거듭하는 눈치 국면입니다.",
-      body: "상대방은 {name}님({gender})의 근황이나 분위기가 궁금하면서도 '지금 연락하면 너무 갑작스럽지 않을까' 하고 스스로 제동을 거는 모습입니다. 날카로운 질문이나 감정 소모 대신 가볍고 부드러운 계기가 마련될 때 마음이 움직이기 쉽습니다."
+      body: "상대방은 {name}님({gender})의 근황이나 분위기가 궁금하면서도 '지금 말을 꺼내면 너무 갑작스럽지 않을까' 하고 스스로 제동을 거는 모습입니다. 날카로운 질문이나 감정 소모 대신 가볍고 부드러운 계기가 마련될 때 마음이 움직이기 쉽습니다."
     }
   ];
 
@@ -340,7 +341,9 @@
       .replace(/\{dayGanJi\}/g, vars.dayGanJi || "")
       .replace(/\{hourShort\}/g, vars.hourShort || "")
       .replace(/\{mJi\}/g, vars.mJi || "")
-      .replace(/\{dJi\}/g, vars.dJi || "");
+      .replace(/\{dJi\}/g, vars.dJi || "")
+      .replace(/\{curMonth\}/g, vars.curMonth || "")
+      .replace(/\{nextMonth\}/g, vars.nextMonth || "");
   }
 
   function runPreview() {
@@ -380,6 +383,11 @@
     const dGan = dayCycle % 10;
     const dJi = dayCycle % 12;
 
+    const now = new Date();
+    const curMonthNum = now.getMonth() + 1;
+    const nextMonthNum = (curMonthNum % 12) + 1;
+    const curDayNum = now.getDate();
+
     const ddi = DDI_NAME[yJi];
     const isTop3 = TOP3_DDI.includes(ddi);
     const dayGanJi = CHEONGAN[dGan] + JIJI[dJi];
@@ -391,19 +399,7 @@
 
     const genderOffset = (genderCode === "M") ? 1 : 0;
     const hourSeed = isHourUnknown ? 2 : hourNum;
-
-    const openerIdx = (yJi + m + d + hourSeed + genderOffset) % PREVIEW_OPENERS.length;
-    const detailIdx = (dayCycle + mJi + dJi + hourSeed + genderOffset) % PREVIEW_DETAILS.length;
-
-    const windowIdx = (yJi + m + d + hourSeed + genderOffset) % TIMING_WINDOWS.length;
-    const slotIdx = (dayCycle + hourSeed * 2 + genderOffset) % TIME_SLOTS.length;
-    const triggerIdx = (mJi + dJi + hourSeed + genderOffset) % TRIGGER_STYLES.length;
-    const mindIdx = (dayCycle + yJi + genderOffset) % MIND_PROFILES.length;
-    const actionIdx = (mJi + hourSeed + genderOffset) % ACTION_PROFILES.length;
-
-    const timingWindow = TIMING_WINDOWS[windowIdx];
-    const timeSlot = TIME_SLOTS[slotIdx];
-    const triggerStyle = TRIGGER_STYLES[triggerIdx];
+    const timeSeed = curMonthNum + curDayNum;
 
     const tplVars = {
       name: name,
@@ -412,8 +408,23 @@
       dayGanJi: dayGanJi,
       hourShort: hourShort,
       mJi: JIJI[mJi],
-      dJi: JIJI[dJi]
+      dJi: JIJI[dJi],
+      curMonth: curMonthNum + "월",
+      nextMonth: nextMonthNum + "월"
     };
+
+    const openerIdx = (yJi + m + d + hourSeed + genderOffset + timeSeed) % PREVIEW_OPENERS.length;
+    const detailIdx = (dayCycle + mJi + dJi + hourSeed + genderOffset + timeSeed) % PREVIEW_DETAILS.length;
+
+    const periodIdx = (yJi * 3 + m * 2 + d + hourSeed * 2 + genderOffset + timeSeed) % PERIOD_PHRASES.length;
+    const slotIdx = (dayCycle + mJi + hourSeed * 3 + genderOffset + curDayNum) % VIBE_SLOTS.length;
+    const triggerIdx = (mJi * 2 + dJi + hourSeed + genderOffset + timeSeed) % TRIGGER_STYLES.length;
+    const mindIdx = (dayCycle + yJi + genderOffset + curMonthNum) % MIND_PROFILES.length;
+    const actionIdx = (mJi + hourSeed + genderOffset + curDayNum) % ACTION_PROFILES.length;
+
+    const timingWindow = applyTextTemplate(PERIOD_PHRASES[periodIdx], tplVars);
+    const vibeSlot = VIBE_SLOTS[slotIdx];
+    const triggerStyle = TRIGGER_STYLES[triggerIdx];
 
     const previewText =
       applyTextTemplate(PREVIEW_OPENERS[openerIdx], tplVars) + " " +
@@ -423,11 +434,11 @@
     const summaryMind = "한 줄 요약: " + mindProfile.summary;
     const detailMind = applyTextTemplate(mindProfile.body, tplVars);
 
-    const summaryTiming = "한 줄 요약: " + timingWindow + ", " + timeSlot + "에 " + triggerStyle + "로 물꼬가 트이기 쉽습니다.";
+    const summaryTiming = "한 줄 요약: " + timingWindow + ", " + vibeSlot + "에 " + triggerStyle + "로 물꼬가 트이기 쉽습니다.";
     const detailTiming =
-      name + "님(" + gender + ")의 명식(" + ddi + " · " + dayGanJi + " 일주, " + hourText + ")과 11~12월 흐름을 함께 보면, 가장 눈여겨보셔야 할 시기는 " +
-      timingWindow + "입니다. 이 기간 중에서도 " + timeSlot + "에 " + triggerStyle +
-      "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 가능성이 높습니다. 하루 이틀의 속도 차이에 일희일비하기보다 해당 시기의 흐름을 차분히 지켜보시는 것이 좋습니다.";
+      name + "님(" + gender + ")의 명식(" + ddi + " · " + dayGanJi + " 일주, " + hourText + ")과 현재 흐름을 함께 보면, 눈여겨보셔야 할 시기는 " +
+      timingWindow + "입니다. 특히 " + vibeSlot + "에 " + triggerStyle +
+      "가 오가며 멈춰 있던 공기가 부드럽게 풀릴 가능성이 높습니다. 하루 이틀의 속도 차이에 조급해하기보다 흐름이 무르익는 결을 차분히 지켜보시는 것이 좋습니다.";
 
     const actionProfile = ACTION_PROFILES[actionIdx];
     const summaryAction = "한 줄 요약: " + actionProfile.summary;
@@ -445,7 +456,7 @@
       hourText: hourText,
       saju: sajuText,
       timingWindow: timingWindow,
-      timeSlot: timeSlot,
+      vibeSlot: vibeSlot,
       previewText: previewText,
       summaryMind: summaryMind,
       detailMind: detailMind,
@@ -477,7 +488,7 @@
     }
 
     document.getElementById("top3BadgeArea").innerHTML = data.isTop3
-      ? '<div class="tag-top3">쇼츠 선정 11~12월 재회운 TOP 3 해당 (' + escapeHtml(data.ddi) + ')</div>'
+      ? '<div class="tag-top3">재회운 상승 흐름 TOP 3 해당 (' + escapeHtml(data.ddi) + ')</div>'
       : '<div class="tag-top3" style="background:#eef2ff;color:#3b5bdb;">' + escapeHtml(data.ddi) + ' · 일주 기운 정밀 매칭 결과</div>';
 
     document.getElementById("userSummaryTitle").innerText = data.name + "님 (" + genderLabel + " · " + data.ddi + " · " + data.dayGanJi + " 일주) 재회운 진단";
@@ -582,7 +593,7 @@
           value: PAYMENT_AMOUNT
         },
         orderId: orderId,
-        orderName: "11~12월 재회운 정밀 사주 풀이",
+        orderName: "재회운 정밀 사주 풀이",
         successUrl: baseOriginUrl + "success.html",
         failUrl: baseOriginUrl + "fail.html",
         customerName: currentReportData.name || "의뢰인"
@@ -645,7 +656,7 @@
 
     const rawText = [
       line,
-      "  [11월~12월 재회운 정밀 사주 풀이 리포트]",
+      "  [재회운 정밀 사주 풀이 리포트]",
       "  바이트빈 · 감성 심층 리포트",
       line,
       "",
@@ -692,7 +703,7 @@
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = (currentReportData.name || "의뢰인") + "_11-12월_재회운_상세풀이.txt";
+    a.download = (currentReportData.name || "의뢰인") + "_재회운_상세풀이.txt";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
