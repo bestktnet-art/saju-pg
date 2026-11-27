@@ -28,9 +28,8 @@
   .meta-line { font-size: 13px; color: #5b2c83; margin: 8px 0 16px; font-weight: bold; }
 
   .preview-card { background: #faf8fc; border: 1px solid #e6dff0; border-radius: 12px; padding: 18px; margin-bottom: 16px; }
-  .preview-card h3 { margin: 0 0 8px; font-size: 16px; color: #3b1d54; }
-  .summary-quote { background: #f3ecf9; border-left: 4px solid #6b3fa0; padding: 10px 12px; border-radius: 6px; font-size: 13.5px; font-weight: bold; color: #34194d; margin-bottom: 12px; }
-  .preview-card p { margin: 0 0 10px; font-size: 14px; line-height: 1.72; color: #333; }
+  .preview-card h3 { margin: 0 0 10px; font-size: 16px; color: #3b1d54; }
+  .preview-card p { margin: 0; font-size: 14px; line-height: 1.75; color: #333; }
   .tag-top3 { display: inline-block; background: #ffe4e8; color: #c92a42; font-weight: bold; font-size: 12px; padding: 3px 8px; border-radius: 6px; margin-bottom: 8px; }
 
   /* 잠금(블러) 영역 */
@@ -146,8 +145,7 @@
 
     <!-- 무료 맛보기 영역 -->
     <div class="preview-card">
-      <h3>[무료 맛보기] 11월~12월 재회운 핵심 흐름</h3>
-      <div class="summary-quote" id="previewSummary"></div>
+      <h3>[무료 맛보기] 재회운 핵심 흐름</h3>
       <p id="previewText"></p>
     </div>
 
@@ -250,6 +248,20 @@
   const DDI_NAME = ["쥐띠", "소띠", "호랑이띠", "토끼띠", "용띠", "뱀띠", "말띠", "양띠", "원숭이띠", "닭띠", "개띠", "돼지띠"];
   const TOP3_DDI = ["닭띠", "개띠", "호랑이띠"];
 
+  const PREVIEW_OPENERS = [
+    "{name}님({gender})의 {ddi}·{dayGanJi} 일주({hourShort}) 명식에서는 두 사람 사이에 남아 있던 감정선이 {mJi}·{dJi} 기운과 맞물리며 잔잔한 파동을 만들고 있습니다. 구체적인 움직임은 상세 풀이에서 확인하실 수 있습니다.",
+    "{name}님({gender})이 지닌 {dayGanJi} 일주와 {ddi}({hourShort})의 흐름은 현재 멈춰 있던 인연의 결을 다시 짚어 보는 국면에 놓여 있습니다. 실제 전환이 열리는 지점은 본 풀이에서 자세히 풀어드립니다.",
+    "{name}님({gender})의 사주 원국({ddi} · {dayGanJi} 일주, {hourShort})을 살펴보면 상대와의 기억이 단순한 과거를 넘어 현재 기운과 얽히는 모습이 포착됩니다. 핵심 흐름과 시기는 상세 리포트에 담았습니다.",
+    "{name}님({gender})의 {ddi} 기운과 {dayGanJi} 일주({hourShort})는 감정의 진폭이 가라앉은 뒤 속내를 비추는 결을 보이고 있습니다. 어떤 식으로 온도가 달라지는지는 상세 풀이에서 확인해 보세요."
+  ];
+
+  const PREVIEW_DETAILS = [
+    "특히 {ddi} 특유의 직관과 {dayGanJi} 일주의 결이 겹치면서, 그동안 말하지 못했던 속마음의 온도가 한쪽에서 먼저 흔들리는 조짐이 감지됩니다.",
+    "상대방 역시 {name}님({gender})과의 시간을 돌아보며 스스로의 감정을 정리하는 과정을 거치고 있으며, {dayGanJi} 일주가 가진 기운이 상대의 시선을 끌어당기는 요소로 작용합니다.",
+    "겉으로 드러나는 조용함과 달리 내면에서는 미련과 호기심이 교차하는 시기라, 두 사람 사이의 공기 변화가 {hourShort} 기운과 함께 미묘하게 감지됩니다.",
+    "{name}님({gender})의 {ddi} 흐름은 서두르기보다 결을 읽는 데 강점이 있으며, 상대방의 마음속에서도 {dayGanJi} 일주 특유의 인상이 지워지지 않고 남아 있습니다."
+  ];
+
   const TIMING_WINDOWS = [
     "11월 셋째 주~넷째 주",
     "11월 넷째 주~12월 첫째 주",
@@ -320,10 +332,15 @@
   let selectedPayLabel = "신용/체크카드";
   let isPaying = false;
 
-  function applyTextTemplate(tpl, name, gender) {
+  function applyTextTemplate(tpl, vars) {
     return String(tpl || "")
-      .replace(/\{name\}/g, name)
-      .replace(/\{gender\}/g, gender);
+      .replace(/\{name\}/g, vars.name || "")
+      .replace(/\{gender\}/g, vars.gender || "")
+      .replace(/\{ddi\}/g, vars.ddi || "")
+      .replace(/\{dayGanJi\}/g, vars.dayGanJi || "")
+      .replace(/\{hourShort\}/g, vars.hourShort || "")
+      .replace(/\{mJi\}/g, vars.mJi || "")
+      .replace(/\{dJi\}/g, vars.dJi || "");
   }
 
   function runPreview() {
@@ -368,11 +385,15 @@
     const dayGanJi = CHEONGAN[dGan] + JIJI[dJi];
     const hourNum = isHourUnknown ? 6 : parseInt(hourVal, 10);
     const hourJiName = JIJI[((hourNum % 12) + 12) % 12];
+    const hourShort = isHourUnknown ? "시각 미상" : (hourJiName + " 시주");
     const hourText = isHourUnknown ? "태어난 시: 모름(삼주 기준 풀이)" : "태어난 시: " + hourJiName + " 기준";
     const sajuText = "연 " + CHEONGAN[yGan] + JIJI[yJi] + " · 월 " + CHEONGAN[mGan] + JIJI[mJi] + " · 일 " + dayGanJi + " · 성별 " + gender + " (" + hourText + ")";
 
     const genderOffset = (genderCode === "M") ? 1 : 0;
     const hourSeed = isHourUnknown ? 2 : hourNum;
+
+    const openerIdx = (yJi + m + d + hourSeed + genderOffset) % PREVIEW_OPENERS.length;
+    const detailIdx = (dayCycle + mJi + dJi + hourSeed + genderOffset) % PREVIEW_DETAILS.length;
 
     const windowIdx = (yJi + m + d + hourSeed + genderOffset) % TIMING_WINDOWS.length;
     const slotIdx = (dayCycle + hourSeed * 2 + genderOffset) % TIME_SLOTS.length;
@@ -384,17 +405,23 @@
     const timeSlot = TIME_SLOTS[slotIdx];
     const triggerStyle = TRIGGER_STYLES[triggerIdx];
 
-    const previewSummary = isTop3
-      ? "한 줄 요약: " + timingWindow + " 흐름 속에서 " + ddi + "(" + dayGanJi + " 일주 · " + gender + ")의 재회 기운이 살아나며, " + timeSlot + "에 주목할 만한 변화가 보입니다."
-      : "한 줄 요약: " + timingWindow + " 사이 " + ddi + "(" + dayGanJi + " 일주 · " + gender + ")의 감정선이 잔잔히 흔들리며, " + timeSlot + "에 마음의 여운이 닿을 수 있습니다.";
+    const tplVars = {
+      name: name,
+      gender: gender,
+      ddi: ddi,
+      dayGanJi: dayGanJi,
+      hourShort: hourShort,
+      mJi: JIJI[mJi],
+      dJi: JIJI[dJi]
+    };
 
-    const previewText = isTop3
-      ? name + "님(" + gender + "), 그동안 마음 한편에 조용히 묻어 두셨던 그 사람과의 인연이 " + ddi + "이자 " + dayGanJi + " 일주의 흐름 속에서 " + timingWindow + " 사이에 다시 숨을 고르는 시기를 맞고 있습니다. 특히 " + timeSlot + "에 " + triggerStyle + " 형태로 분위기가 움직일 수 있으니 흐름을 놓치지 말고 차분히 살펴보세요."
-      : name + "님(" + gender + "), 겉으로는 담담하게 하루를 버텨 오셨겠지만 마음속 여운은 쉽게 지워지지 않으셨을 거예요. " + ddi + "·" + dayGanJi + " 일주 기운으로 볼 때 " + timingWindow + " 무렵 두 사람의 감정선이 다시 마주칠 여지가 열리며, " + timeSlot + "에 " + triggerStyle + "가 이어질 가능성이 있습니다.";
+    const previewText =
+      applyTextTemplate(PREVIEW_OPENERS[openerIdx], tplVars) + " " +
+      applyTextTemplate(PREVIEW_DETAILS[detailIdx], tplVars);
 
     const mindProfile = MIND_PROFILES[mindIdx];
     const summaryMind = "한 줄 요약: " + mindProfile.summary;
-    const detailMind = applyTextTemplate(mindProfile.body, name, gender);
+    const detailMind = applyTextTemplate(mindProfile.body, tplVars);
 
     const summaryTiming = "한 줄 요약: " + timingWindow + ", " + timeSlot + "에 " + triggerStyle + "로 물꼬가 트이기 쉽습니다.";
     const detailTiming =
@@ -404,7 +431,7 @@
 
     const actionProfile = ACTION_PROFILES[actionIdx];
     const summaryAction = "한 줄 요약: " + actionProfile.summary;
-    const detailAction = applyTextTemplate(actionProfile.body, name, gender);
+    const detailAction = applyTextTemplate(actionProfile.body, tplVars);
 
     currentReportData = {
       name: name,
@@ -419,7 +446,6 @@
       saju: sajuText,
       timingWindow: timingWindow,
       timeSlot: timeSlot,
-      previewSummary: previewSummary,
       previewText: previewText,
       summaryMind: summaryMind,
       detailMind: detailMind,
@@ -456,7 +482,6 @@
 
     document.getElementById("userSummaryTitle").innerText = data.name + "님 (" + genderLabel + " · " + data.ddi + " · " + data.dayGanJi + " 일주) 재회운 진단";
     document.getElementById("sajuMetaText").innerText = data.saju;
-    document.getElementById("previewSummary").innerText = data.previewSummary;
     document.getElementById("previewText").innerText = data.previewText;
 
     document.getElementById("summaryMind").innerText = data.summaryMind;
@@ -631,10 +656,8 @@
       "  · 명식 정보    : " + currentReportData.saju,
       "",
       subLine,
-      "■ [핵심 요약] 11월~12월 재회운 흐름",
+      "■ [핵심 흐름] 재회운 맛보기",
       subLine,
-      "  ▶ " + currentReportData.previewSummary,
-      "",
       currentReportData.previewText,
       "",
       subLine,
